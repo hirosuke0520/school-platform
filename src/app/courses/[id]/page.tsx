@@ -2,110 +2,29 @@ import Link from "next/link";
 import { ChevronLeftIcon, StarIcon } from "@heroicons/react/20/solid";
 import { StarIcon as StarIconSolid } from "@heroicons/react/20/solid";
 import Breadcrumb from "../../../components/Breadcrumb";
+import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
 
-// モックデータ
-const courseData = {
-  1: {
-    title: "PHPを理解する",
-    description: "PHPとはどんなものなのかを理解しましょう。",
-    chapters: [
-      {
-        id: 1,
-        title: "URLをパーツに分けて理解する",
-        duration: "約15分",
-        lessons: [{ id: 1, title: "URLを分解して見てみよう", completed: true }],
-      },
-      {
-        id: 2,
-        title: "リクエストとレスポンス",
-        duration: "約10分",
-        lessons: [{ id: 2, title: "リクエストとレスポンス", completed: true }],
-      },
-      {
-        id: 3,
-        title: "WEBサーバーについて",
-        duration: "約10分",
-        lessons: [{ id: 3, title: "Webサーバーについて", completed: true }],
-      },
-      {
-        id: 4,
-        title: "アプリケーションサーバーについて",
-        duration: "約10分",
-        lessons: [
-          { id: 4, title: "アプリケーションサーバーについて", completed: true },
-        ],
-      },
-      {
-        id: 5,
-        title: "フロントエンドとは",
-        duration: "約5分",
-        lessons: [{ id: 5, title: "フロントエンドとは", completed: true }],
-      },
-      {
-        id: 6,
-        title: "バックエンドとは",
-        duration: "約10分",
-        lessons: [{ id: 6, title: "バックエンドとは", completed: true }],
-      },
-      {
-        id: 7,
-        title: "プログラミング言語について",
-        duration: "約20分",
-        lessons: [
-          { id: 7, title: "PHPとは？", completed: true },
-          {
-            id: 8,
-            title: "PHPファイルを作成して表示してみよう",
-            completed: true,
-          },
-        ],
-      },
-      {
-        id: 8,
-        title: "プログラミング用エディタについて",
-        duration: "約5分",
-        lessons: [
-          {
-            id: 9,
-            title: "プログラミング用のエディタについて",
-            completed: true,
-          },
-        ],
-      },
-    ],
-  },
-  2: {
-    title: "Laravel基礎",
-    description: "LaravelでWebアプリケーション開発の基礎を学びましょう。",
-    chapters: [
-      {
-        id: 1,
-        title: "Laravelとは",
-        duration: "約20分",
-        lessons: [
-          { id: 10, title: "Laravelフレームワークの概要", completed: false },
-          { id: 11, title: "MVCアーキテクチャについて", completed: false },
-        ],
-      },
-      {
-        id: 2,
-        title: "Eloquent ORM",
-        duration: "約30分",
-        lessons: [
-          { id: 12, title: "Eloquentの基本", completed: false },
-          { id: 13, title: "リレーションシップ", completed: false },
-        ],
-      },
-    ],
-  },
-};
-
-export default function CourseDetail({ params }: { params: { id: string } }) {
+export default async function CourseDetail({ params }: { params: { id: string } }) {
   const courseId = parseInt(params.id);
-  const course = courseData[courseId as keyof typeof courseData];
+  
+  // DBからコースデータを取得
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+    include: {
+      chapters: {
+        orderBy: { orderIndex: 'asc' },
+        include: {
+          lessons: {
+            orderBy: { orderIndex: 'asc' },
+          },
+        },
+      },
+    },
+  });
 
   if (!course) {
-    return <div>コースが見つかりません</div>;
+    notFound();
   }
 
   const breadcrumbItems = [{ name: course.title }];
@@ -158,49 +77,58 @@ export default function CourseDetail({ params }: { params: { id: string } }) {
           <h2 className="text-2xl font-bold text-white mb-6">学習内容</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {course.chapters.map((chapter) => (
-              <div
-                key={chapter.id}
-                className="bg-slate-800 border border-slate-700 rounded-lg p-6"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-white mb-2">
-                      {chapter.id}：{chapter.title}
-                    </h3>
-                    <p className="text-slate-400 text-sm mb-4">
-                      ({chapter.duration})
-                    </p>
+            {course.chapters.map((chapter) => {
+              const estimatedMinutes = chapter.lessons.reduce((total, lesson) => total + (lesson.estimatedMinutes || 0), 0);
+              
+              return (
+                <div
+                  key={chapter.id}
+                  className="bg-slate-800 border border-slate-700 rounded-lg p-6"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-white mb-2">
+                        {chapter.orderIndex}：{chapter.title}
+                      </h3>
+                      <p className="text-slate-400 text-sm mb-4">
+                        (約{estimatedMinutes}分)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {chapter.lessons.map((lesson, index) => {
+                      // 仮の完了状態（PHPコースのレッスンは完了済み、Laravelは未完了）
+                      const completed = course.technology === 'PHP';
+                      
+                      return (
+                        <Link
+                          key={lesson.id}
+                          href={`/lessons/${lesson.id}`}
+                          className="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors group"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <span className="text-cyan-400 text-sm font-medium">
+                              {lesson.orderIndex}.
+                            </span>
+                            <span className="text-white text-sm group-hover:text-cyan-400 transition-colors">
+                              {lesson.title}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            {completed ? (
+                              <StarIconSolid className="w-4 h-4 text-yellow-400" />
+                            ) : (
+                              <StarIcon className="w-4 h-4 text-slate-400" />
+                            )}
+                          </div>
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
-
-                <div className="space-y-3">
-                  {chapter.lessons.map((lesson) => (
-                    <Link
-                      key={lesson.id}
-                      href={`/lessons/${lesson.id}`}
-                      className="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors group"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <span className="text-cyan-400 text-sm font-medium">
-                          {lesson.id}.
-                        </span>
-                        <span className="text-white text-sm group-hover:text-cyan-400 transition-colors">
-                          {lesson.title}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {lesson.completed ? (
-                          <StarIconSolid className="w-4 h-4 text-yellow-400" />
-                        ) : (
-                          <StarIcon className="w-4 h-4 text-slate-400" />
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </main>
