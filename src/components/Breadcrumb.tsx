@@ -12,7 +12,7 @@ interface BreadcrumbProps {
 export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
     <nav className="flex items-center space-x-2 text-sm text-slate-400 mb-6">
-      <Link href="/" className="hover:text-cyan-400 transition-colors">
+      <Link href="/" className="hover:text-cyan-400 transition-colors cursor-pointer">
         ホーム
       </Link>
       {items.map((item, index) => (
@@ -21,7 +21,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
           {item.href ? (
             <Link
               href={item.href}
-              className="hover:text-cyan-400 transition-colors"
+              className="hover:text-cyan-400 transition-colors cursor-pointer"
             >
               {item.name}
             </Link>

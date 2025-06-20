@@ -39,7 +39,21 @@ export default async function Dashboard() {
       (total, chapter) => total + chapter.lessons.length,
       0
     );
-    const techData = technologyIcons[course.technology || ""] || {
+    
+    // コースタイトルから技術を推測
+    const title = course.title.toLowerCase();
+    let technology = "";
+    if (title.includes("git")) technology = "Git";
+    else if (title.includes("html")) technology = "HTML";
+    else if (title.includes("css")) technology = "CSS";
+    else if (title.includes("javascript")) technology = "JavaScript";
+    else if (title.includes("linux")) technology = "Linux";
+    else if (title.includes("docker")) technology = "Docker";
+    else if (title.includes("php")) technology = "PHP";
+    else if (title.includes("mysql")) technology = "MySQL";
+    else if (title.includes("laravel")) technology = "Laravel";
+    
+    const techData = technologyIcons[technology] || {
       icon: "📚",
       color: "bg-gray-500",
     };
@@ -106,7 +120,7 @@ export default async function Dashboard() {
             </h3>
             <Link
               href="/courses"
-              className="text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors"
+              className="text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors cursor-pointer"
             >
               すべて見る →
             </Link>
@@ -121,7 +135,7 @@ export default async function Dashboard() {
                 <Link
                   key={course.id}
                   href={`/courses/${course.id}`}
-                  className="group block"
+                  className="group block cursor-pointer"
                 >
                   <div className="bg-linear-to-r from-slate-800 to-slate-700 border border-slate-600 rounded-lg p-6 hover:border-cyan-400/50 transition-all duration-300 group-hover:shadow-sm group-hover:shadow-cyan-400/10 group-hover:-translate-y-1">
                     <div className="flex items-start justify-between mb-4">
@@ -183,7 +197,7 @@ export default async function Dashboard() {
               <Link
                 key={course.id}
                 href={`/courses/${course.id}`}
-                className="group block"
+                className="group block cursor-pointer"
               >
                 <div className="bg-slate-800 border border-slate-700 rounded-sm overflow-hidden hover:border-cyan-400/50 transition-all duration-300 group-hover:shadow-xs group-hover:shadow-cyan-400/10 group-hover:-translate-y-1">
                   <div className="p-6">

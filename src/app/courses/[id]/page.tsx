@@ -38,7 +38,7 @@ export default async function CourseDetail({ params }: { params: { id: string } 
             <div className="flex items-center space-x-4">
               <Link
                 href="/"
-                className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                className="p-2 hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
               >
                 <ChevronLeftIcon className="w-5 h-5 text-white" />
               </Link>
@@ -105,7 +105,7 @@ export default async function CourseDetail({ params }: { params: { id: string } 
                         <Link
                           key={lesson.id}
                           href={`/lessons/${lesson.id}`}
-                          className="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors group"
+                          className="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors group cursor-pointer"
                         >
                           <div className="flex items-center space-x-3">
                             <span className="text-cyan-400 text-sm font-medium">

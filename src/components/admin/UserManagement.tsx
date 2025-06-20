@@ -67,7 +67,7 @@ export default function UserManagement({ initialUsers }: UserManagementProps) {
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
         >
           <PlusIcon className="h-4 w-4 mr-2" />
           新規ユーザー作成
@@ -98,7 +98,7 @@ export default function UserManagement({ initialUsers }: UserManagementProps) {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {initialUsers.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
+              <tr key={user.id} className="hover:bg-gray-50 cursor-pointer">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="h-10 w-10 flex-shrink-0">
@@ -137,14 +137,14 @@ export default function UserManagement({ initialUsers }: UserManagementProps) {
                   <div className="flex justify-end space-x-2">
                     <button
                       onClick={() => handleEditUser(user)}
-                      className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
+                      className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 cursor-pointer"
                       title="編集"
                     >
                       <PencilIcon className="h-4 w-4" />
                     </button>
                     <button 
                       onClick={() => handleDeleteUser(user)}
-                      className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50"
+                      className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 cursor-pointer"
                       title="削除"
                     >
                       <TrashIcon className="h-4 w-4" />

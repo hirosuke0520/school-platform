@@ -2,78 +2,65 @@
 
 import { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { User } from "@prisma/client";
 import { useToast } from "@/contexts/ToastContext";
 
-interface UserEditModalProps {
+interface CourseCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUserUpdated: () => void;
-  user: User | null;
+  onCourseCreated: () => void;
 }
 
-export default function UserEditModal({
+export default function CourseCreateModal({
   isOpen,
   onClose,
-  onUserUpdated,
-  user,
-}: UserEditModalProps) {
+  onCourseCreated,
+}: CourseCreateModalProps) {
   const { showSuccess, showError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    role: "LEARNER" as "ADMIN" | "INSTRUCTOR" | "LEARNER",
+    title: "",
+    description: "",
+    orderIndex: 1,
   });
 
-  // モーダルが開かれる、またはuserが変更されるたびにフォームを初期化
+  // モーダルが開かれるたびにフォームをリセット
   useEffect(() => {
-    if (isOpen && user) {
+    if (isOpen) {
       setFormData({
-        name: user.name || "",
-        email: user.email,
-        role: user.role,
-      });
-      setError("");
-    } else if (!isOpen) {
-      // モーダルが閉じられた時にフォームをリセット（データ残留防止）
-      setFormData({
-        name: "",
-        email: "",
-        role: "LEARNER",
+        title: "",
+        description: "",
+        orderIndex: 1,
       });
       setError("");
     }
-  }, [isOpen, user]);
+  }, [isOpen]);
 
   // ESCキーでモーダルを閉じる
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isOpen) {
+      if (event.key === "Escape" && isOpen) {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscapeKey);
+      document.addEventListener("keydown", handleEscapeKey);
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscapeKey);
+      document.removeEventListener("keydown", handleEscapeKey);
     };
   }, [isOpen, onClose]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
-
     setIsLoading(true);
     setError("");
 
     try {
-      const response = await fetch(`/api/admin/users/${user.id}`, {
-        method: "PUT",
+      const response = await fetch("/api/admin/courses", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -83,12 +70,12 @@ export default function UserEditModal({
       const data = await response.json();
 
       if (response.ok) {
-        showSuccess("ユーザー更新完了", `${formData.name}さんの情報を更新しました`);
-        onUserUpdated(); // 親コンポーネントに成功を通知
+        showSuccess("コース作成完了", `「${formData.title}」を作成しました`);
+        onCourseCreated(); // 親コンポーネントに成功を通知
       } else {
-        const errorMessage = data.error || "ユーザー更新に失敗しました";
+        const errorMessage = data.error || "コース作成に失敗しました";
         setError(errorMessage);
-        showError("ユーザー更新失敗", errorMessage);
+        showError("コース作成失敗", errorMessage);
       }
     } catch (error) {
       const errorMessage = "ネットワークエラーが発生しました";
@@ -100,16 +87,18 @@ export default function UserEditModal({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === "orderIndex" ? parseInt(value) || 1 : value,
     }));
   };
 
-  if (!isOpen || !user) return null;
+  if (!isOpen) return null;
 
   return (
     <>
@@ -127,7 +116,7 @@ export default function UserEditModal({
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-gray-900">
-                  ユーザー編集
+                  新規コース作成
                 </h3>
                 <button
                   onClick={onClose}
@@ -146,65 +135,63 @@ export default function UserEditModal({
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label
-                    htmlFor="edit-name"
+                    htmlFor="title"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    氏名 <span className="text-red-500">*</span>
+                    コース名 <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    id="edit-name"
-                    name="name"
+                    id="title"
+                    name="title"
                     required
-                    value={formData.name}
+                    value={formData.title}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="山田太郎"
+                    placeholder="例: React基礎コース"
                   />
                 </div>
 
                 <div>
                   <label
-                    htmlFor="edit-email"
+                    htmlFor="description"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    メールアドレス <span className="text-red-500">*</span>
+                    説明
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    rows={3}
+                    value={formData.description}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="コースの概要を入力してください"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="orderIndex"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    表示順序 <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="email"
-                    id="edit-email"
-                    name="email"
+                    type="number"
+                    id="orderIndex"
+                    name="orderIndex"
                     required
-                    value={formData.email}
+                    min="1"
+                    value={formData.orderIndex}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="yamada@company.com"
                   />
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="edit-role"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    役割 <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    id="edit-role"
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="LEARNER">学習者</option>
-                    <option value="INSTRUCTOR">講師</option>
-                    <option value="ADMIN">管理者</option>
-                  </select>
-                </div>
-
-                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-                  <p className="text-sm text-yellow-800">
-                    メールアドレスを変更した場合、新しいアドレスにメール認証が送信されます。
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                  <p className="text-sm text-blue-800">
+                    作成後、チャプターやレッスンを追加できます。
                   </p>
                 </div>
               </form>
@@ -215,9 +202,9 @@ export default function UserEditModal({
                 type="submit"
                 onClick={handleSubmit}
                 disabled={isLoading}
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                {isLoading ? "更新中..." : "ユーザーを更新"}
+                {isLoading ? "作成中..." : "コースを作成"}
               </button>
               <button
                 type="button"
