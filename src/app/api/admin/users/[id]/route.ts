@@ -20,7 +20,10 @@ export async function PUT(
 
     // 更新対象のユーザーが存在するかチェック
     const existingUser = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { 
+        id: userId,
+        isDeleted: false 
+      },
     });
 
     if (!existingUser) {
@@ -33,7 +36,10 @@ export async function PUT(
     // メールアドレスの重複チェック（自分以外で同じメールアドレスがないか）
     if (email !== existingUser.email) {
       const emailExists = await prisma.user.findUnique({
-        where: { email },
+        where: { 
+          email,
+          isDeleted: false 
+        },
       });
 
       if (emailExists) {
@@ -83,9 +89,12 @@ export async function DELETE(
   try {
     const userId = params.id;
 
-    // 削除対象のユーザーが存在するかチェック
+    // 削除対象のユーザーが存在するかチェック（既に削除されていないかも確認）
     const existingUser = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { 
+        id: userId,
+        isDeleted: false 
+      },
     });
 
     if (!existingUser) {
@@ -95,9 +104,13 @@ export async function DELETE(
       );
     }
 
-    // ユーザー削除（関連データも CASCADE で削除される）
-    await prisma.user.delete({
+    // ソフト削除（論理削除）を実行
+    await prisma.user.update({
       where: { id: userId },
+      data: {
+        isDeleted: true,
+        deletedAt: new Date(),
+      },
     });
 
     return NextResponse.json({

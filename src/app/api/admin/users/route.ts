@@ -16,7 +16,10 @@ export async function POST(request: NextRequest) {
 
     // メールアドレスの重複チェック
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { 
+        email,
+        isDeleted: false 
+      },
     });
 
     if (existingUser) {
@@ -57,6 +60,9 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
+      where: {
+        isDeleted: false,
+      },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
