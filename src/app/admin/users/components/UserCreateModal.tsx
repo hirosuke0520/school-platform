@@ -39,17 +39,17 @@ export default function UserCreateModal({
   // ESCキーでモーダルを閉じる
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isOpen) {
+      if (event.key === "Escape" && isOpen) {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscapeKey);
+      document.addEventListener("keydown", handleEscapeKey);
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscapeKey);
+      document.removeEventListener("keydown", handleEscapeKey);
     };
   }, [isOpen, onClose]);
 
@@ -70,7 +70,10 @@ export default function UserCreateModal({
       const data = await response.json();
 
       if (response.ok) {
-        showSuccess("ユーザー作成完了", `${formData.name}さんのアカウントを作成しました`);
+        showSuccess(
+          "ユーザー作成完了",
+          `${formData.name}さんのアカウントを作成しました`
+        );
         onUserCreated(); // 親コンポーネントに成功を通知
       } else {
         const errorMessage = data.error || "ユーザー作成に失敗しました";
@@ -202,7 +205,7 @@ export default function UserCreateModal({
                 type="submit"
                 onClick={handleSubmit}
                 disabled={isLoading}
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isLoading ? "作成中..." : "ユーザーを作成"}
               </button>

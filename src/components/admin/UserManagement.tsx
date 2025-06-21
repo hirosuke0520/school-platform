@@ -1,8 +1,13 @@
-'use client';
+"use client";
 
 import { useState } from "react";
-import { PlusIcon, PencilIcon, TrashIcon, UserGroupIcon } from "@heroicons/react/24/outline";
-import { User } from '@prisma/client';
+import {
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  UserGroupIcon,
+} from "@heroicons/react/24/outline";
+import { User } from "@prisma/client";
 import { formatDateShort } from "@/lib/dateUtils";
 import UserCreateModal from "@/app/admin/users/components/UserCreateModal";
 import UserEditModal from "@/app/admin/users/components/UserEditModal";
@@ -47,22 +52,24 @@ export default function UserManagement({ initialUsers }: UserManagementProps) {
   };
 
   const roleLabels = {
-    ADMIN: '管理者',
-    INSTRUCTOR: '講師',
-    LEARNER: '学習者',
+    ADMIN: "管理者",
+    INSTRUCTOR: "講師",
+    LEARNER: "学習者",
   };
 
   const roleColors = {
-    ADMIN: 'bg-red-100 text-red-800',
-    INSTRUCTOR: 'bg-blue-100 text-blue-800',
-    LEARNER: 'bg-green-100 text-green-800',
+    ADMIN: "bg-red-100 text-red-800",
+    INSTRUCTOR: "bg-blue-100 text-blue-800",
+    LEARNER: "bg-green-100 text-green-800",
   };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">ユーザー管理</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            ユーザー管理
+          </h1>
           <p className="text-gray-600">社員アカウントの作成・編集・削除</p>
         </div>
         <button
@@ -72,6 +79,28 @@ export default function UserManagement({ initialUsers }: UserManagementProps) {
           <PlusIcon className="h-4 w-4 mr-2" />
           新規ユーザー作成
         </button>
+      </div>
+
+      {/* 統計情報 */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-lg border shadow-sm">
+          <div className="text-2xl font-bold text-gray-900">
+            {initialUsers.length}
+          </div>
+          <div className="text-sm text-gray-600">総ユーザー数</div>
+        </div>
+        <div className="bg-white p-6 rounded-lg border shadow-sm">
+          <div className="text-2xl font-bold text-green-600">
+            {initialUsers.filter((u) => u.role === "LEARNER").length}
+          </div>
+          <div className="text-sm text-gray-600">学習者</div>
+        </div>
+        <div className="bg-white p-6 rounded-lg border shadow-sm">
+          <div className="text-2xl font-bold text-blue-600">
+            {initialUsers.filter((u) => u.role === "INSTRUCTOR").length}
+          </div>
+          <div className="text-sm text-gray-600">講師</div>
+        </div>
       </div>
 
       {/* ユーザー一覧テーブル */}
@@ -104,20 +133,25 @@ export default function UserManagement({ initialUsers }: UserManagementProps) {
                     <div className="h-10 w-10 flex-shrink-0">
                       <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
                         <span className="text-white text-sm font-medium">
-                          {user.name?.charAt(0) || user.email.charAt(0).toUpperCase()}
+                          {user.name?.charAt(0) ||
+                            user.email.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     </div>
                     <div className="ml-4">
                       <div className="text-sm font-medium text-gray-900">
-                        {user.name || '名前未設定'}
+                        {user.name || "名前未設定"}
                       </div>
                       <div className="text-sm text-gray-500">{user.email}</div>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${roleColors[user.role]}`}>
+                  <span
+                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      roleColors[user.role]
+                    }`}
+                  >
                     {roleLabels[user.role]}
                   </span>
                 </td>
@@ -125,12 +159,14 @@ export default function UserManagement({ initialUsers }: UserManagementProps) {
                   {formatDateShort(user.createdAt)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    user.emailVerified 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {user.emailVerified ? '認証済み' : '未認証'}
+                  <span
+                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      user.emailVerified
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {user.emailVerified ? "認証済み" : "未認証"}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -142,7 +178,7 @@ export default function UserManagement({ initialUsers }: UserManagementProps) {
                     >
                       <PencilIcon className="h-4 w-4" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDeleteUser(user)}
                       className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 cursor-pointer"
                       title="削除"
@@ -160,31 +196,13 @@ export default function UserManagement({ initialUsers }: UserManagementProps) {
           <div className="text-center py-12">
             <div className="text-gray-500">
               <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <p className="text-lg font-medium">ユーザーがまだ登録されていません</p>
+              <p className="text-lg font-medium">
+                ユーザーがまだ登録されていません
+              </p>
               <p className="text-sm">新規ユーザー作成から始めましょう</p>
             </div>
           </div>
         )}
-      </div>
-
-      {/* 統計情報 */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg border shadow-sm">
-          <div className="text-2xl font-bold text-gray-900">{initialUsers.length}</div>
-          <div className="text-sm text-gray-600">総ユーザー数</div>
-        </div>
-        <div className="bg-white p-6 rounded-lg border shadow-sm">
-          <div className="text-2xl font-bold text-green-600">
-            {initialUsers.filter(u => u.role === 'LEARNER').length}
-          </div>
-          <div className="text-sm text-gray-600">学習者</div>
-        </div>
-        <div className="bg-white p-6 rounded-lg border shadow-sm">
-          <div className="text-2xl font-bold text-blue-600">
-            {initialUsers.filter(u => u.role === 'INSTRUCTOR').length}
-          </div>
-          <div className="text-sm text-gray-600">講師</div>
-        </div>
       </div>
 
       {/* モーダル */}
