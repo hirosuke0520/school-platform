@@ -8,8 +8,9 @@ import Breadcrumb from "../../../components/Breadcrumb";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
-export default async function LessonDetail({ params }: { params: { id: string } }) {
-  const lessonId = parseInt(params.id);
+export default async function LessonDetail({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const lessonId = parseInt(resolvedParams.id);
   
   // DBからレッスンデータを取得
   const lesson = await prisma.lesson.findUnique({

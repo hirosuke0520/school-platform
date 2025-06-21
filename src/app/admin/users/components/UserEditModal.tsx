@@ -90,7 +90,7 @@ export default function UserEditModal({
         setError(errorMessage);
         showError("ユーザー更新失敗", errorMessage);
       }
-    } catch (error) {
+    } catch {
       const errorMessage = "ネットワークエラーが発生しました";
       setError(errorMessage);
       showError("ネットワークエラー", errorMessage);

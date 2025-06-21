@@ -3,13 +3,14 @@ import { prisma } from '@/lib/prisma';
 import CourseDetailClient from '@/components/admin/CourseDetailClient';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function CourseDetailPage({ params }: PageProps) {
-  const courseId = parseInt(params.id);
+  const resolvedParams = await params;
+  const courseId = parseInt(resolvedParams.id);
 
   if (isNaN(courseId)) {
     notFound();

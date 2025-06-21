@@ -38,7 +38,7 @@ export default function LessonPublishModal({ isOpen, onClose, onPublish, lessonT
       await onPublish();
       showSuccess('レッスン公開完了', `「${lessonTitle}」を公開しました`);
       onClose();
-    } catch (error) {
+    } catch {
       // エラーは親コンポーネントで処理
     } finally {
       setIsLoading(false);

@@ -5,8 +5,9 @@ import Breadcrumb from "../../../components/Breadcrumb";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
-export default async function CourseDetail({ params }: { params: { id: string } }) {
-  const courseId = parseInt(params.id);
+export default async function CourseDetail({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const courseId = parseInt(resolvedParams.id);
   
   // DBからコースデータを取得
   const course = await prisma.course.findUnique({
@@ -97,9 +98,9 @@ export default async function CourseDetail({ params }: { params: { id: string } 
                   </div>
 
                   <div className="space-y-3">
-                    {chapter.lessons.map((lesson, index) => {
-                      // 仮の完了状態（PHPコースのレッスンは完了済み、Laravelは未完了）
-                      const completed = course.technology === 'PHP';
+                    {chapter.lessons.map((lesson) => {
+                      // 仮の完了状態（すべて未完了として設定）
+                      const completed = false;
                       
                       return (
                         <Link

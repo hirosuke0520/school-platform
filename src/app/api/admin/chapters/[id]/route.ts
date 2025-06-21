@@ -4,10 +4,11 @@ import { prisma } from '@/lib/prisma';
 // チャプター詳細取得
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const chapterId = parseInt(params.id);
+    const resolvedParams = await params;
+    const chapterId = parseInt(resolvedParams.id);
 
     if (isNaN(chapterId)) {
       return NextResponse.json(
@@ -59,10 +60,11 @@ export async function GET(
 // チャプター更新
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const chapterId = parseInt(params.id);
+    const resolvedParams = await params;
+    const chapterId = parseInt(resolvedParams.id);
 
     if (isNaN(chapterId)) {
       return NextResponse.json(
@@ -180,10 +182,11 @@ export async function PUT(
 // チャプター削除（論理削除）
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const chapterId = parseInt(params.id);
+    const resolvedParams = await params;
+    const chapterId = parseInt(resolvedParams.id);
 
     if (isNaN(chapterId)) {
       return NextResponse.json(

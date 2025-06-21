@@ -52,7 +52,7 @@ export default function CourseDeleteModal({ isOpen, onClose, course }: CourseDel
         const errorMessage = data.error || 'コース削除に失敗しました';
         showError('コース削除失敗', errorMessage);
       }
-    } catch (error) {
+    } catch {
       showError('ネットワークエラー', 'ネットワークエラーが発生しました');
     } finally {
       setIsLoading(false);

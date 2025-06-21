@@ -16,7 +16,6 @@ async function main() {
     data: {
       title: 'Git(バージョン管理)',
       description: 'ソースコードを管理するためのシステム',
-      technology: 'Git',
       orderIndex: 1,
     },
   });
@@ -44,7 +43,6 @@ async function main() {
     data: {
       title: 'Docker(仮想環境構築)',
       description: '仮想環境を作成するためのプラットフォーム',
-      technology: 'Docker',
       orderIndex: 2,
     },
   });
@@ -71,7 +69,6 @@ async function main() {
     data: {
       title: 'HTML',
       description: 'Webページの構造をつくるための言語',
-      technology: 'HTML',
       orderIndex: 3,
     },
   });
@@ -97,7 +94,6 @@ async function main() {
     data: {
       title: 'CSS',
       description: 'Webページを装飾するための言語',
-      technology: 'CSS',
       orderIndex: 4,
     },
   });
@@ -123,7 +119,6 @@ async function main() {
     data: {
       title: 'JavaScript',
       description: 'HTMLやCSSで作った構造や装飾を操作するための言語',
-      technology: 'JavaScript',
       orderIndex: 5,
     },
   });
@@ -151,7 +146,6 @@ async function main() {
     data: {
       title: 'Linux',
       description: 'オープンソースで広く使われているOS',
-      technology: 'Linux',
       orderIndex: 6,
     },
   });
@@ -175,7 +169,6 @@ async function main() {
     data: {
       title: 'PHP',
       description: 'Webアプリの作成に使われるプログラミング言語',
-      technology: 'PHP',
       orderIndex: 7,
     },
   });
@@ -233,7 +226,6 @@ async function main() {
     data: {
       title: 'MySQL',
       description: 'データベースを管理するシステム',
-      technology: 'MySQL',
       orderIndex: 8,
     },
   });
@@ -260,7 +252,6 @@ async function main() {
     data: {
       title: 'Laravel',
       description: '人気の高いPHPのフレームワーク',
-      technology: 'Laravel',
       orderIndex: 9,
     },
   });

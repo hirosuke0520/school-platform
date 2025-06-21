@@ -245,7 +245,7 @@ export default function LessonEditClient({
         const errorMessage = data.error || "下書き保存に失敗しました";
         showError("下書き保存失敗", errorMessage);
       }
-    } catch (error) {
+    } catch {
       showError("ネットワークエラー", "ネットワークエラーが発生しました");
     } finally {
       setIsDraftSaving(false);
@@ -309,7 +309,7 @@ export default function LessonEditClient({
         const data = await response.json();
         showError("削除失敗", data.error || "レッスンの削除に失敗しました");
       }
-    } catch (error) {
+    } catch {
       showError("ネットワークエラー", "ネットワークエラーが発生しました");
     } finally {
       setIsDeleting(false);

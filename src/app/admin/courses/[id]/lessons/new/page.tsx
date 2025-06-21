@@ -3,13 +3,14 @@ import { prisma } from '@/lib/prisma';
 import LessonCreateClient from '@/components/admin/LessonCreateClient';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function LessonCreatePage({ params }: PageProps) {
-  const courseId = parseInt(params.id);
+  const resolvedParams = await params;
+  const courseId = parseInt(resolvedParams.id);
 
   if (isNaN(courseId)) {
     notFound();

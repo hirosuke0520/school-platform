@@ -78,7 +78,7 @@ export default function ChapterCreateModal({ isOpen, onClose, onChapterCreated, 
         setError(errorMessage);
         showError('チャプター作成失敗', errorMessage);
       }
-    } catch (error) {
+    } catch {
       const errorMessage = 'ネットワークエラーが発生しました';
       setError(errorMessage);
       showError('ネットワークエラー', errorMessage);

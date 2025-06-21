@@ -4,10 +4,11 @@ import { prisma } from '@/lib/prisma';
 // 特定レッスンの取得
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const lessonId = parseInt(params.id);
+    const resolvedParams = await params;
+    const lessonId = parseInt(resolvedParams.id);
 
     if (isNaN(lessonId)) {
       return NextResponse.json(
@@ -57,10 +58,11 @@ export async function GET(
 // レッスンの更新
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const lessonId = parseInt(params.id);
+    const resolvedParams = await params;
+    const lessonId = parseInt(resolvedParams.id);
 
     if (isNaN(lessonId)) {
       return NextResponse.json(
@@ -179,10 +181,11 @@ export async function PUT(
 // レッスンの削除（論理削除）
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const lessonId = parseInt(params.id);
+    const resolvedParams = await params;
+    const lessonId = parseInt(resolvedParams.id);
 
     if (isNaN(lessonId)) {
       return NextResponse.json(

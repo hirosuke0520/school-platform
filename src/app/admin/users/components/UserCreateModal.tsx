@@ -77,7 +77,7 @@ export default function UserCreateModal({
         setError(errorMessage);
         showError("ユーザー作成失敗", errorMessage);
       }
-    } catch (error) {
+    } catch {
       const errorMessage = "ネットワークエラーが発生しました";
       setError(errorMessage);
       showError("ネットワークエラー", errorMessage);

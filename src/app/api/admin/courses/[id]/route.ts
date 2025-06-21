@@ -4,10 +4,11 @@ import { prisma } from '@/lib/prisma';
 // コース詳細取得
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const courseId = parseInt(params.id);
+    const resolvedParams = await params;
+    const courseId = parseInt(resolvedParams.id);
 
     if (isNaN(courseId)) {
       return NextResponse.json(
@@ -63,10 +64,11 @@ export async function GET(
 // コース更新
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const courseId = parseInt(params.id);
+    const resolvedParams = await params;
+    const courseId = parseInt(resolvedParams.id);
 
     if (isNaN(courseId)) {
       return NextResponse.json(
@@ -151,10 +153,11 @@ export async function PUT(
 // コース削除（論理削除）
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const courseId = parseInt(params.id);
+    const resolvedParams = await params;
+    const courseId = parseInt(resolvedParams.id);
 
     if (isNaN(courseId)) {
       return NextResponse.json(

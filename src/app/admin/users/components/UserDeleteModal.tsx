@@ -52,7 +52,7 @@ export default function UserDeleteModal({ isOpen, onClose, onUserDeleted, user }
         const errorMessage = data.error || 'ユーザー削除に失敗しました';
         showError('ユーザー削除失敗', errorMessage);
       }
-    } catch (error) {
+    } catch {
       const errorMessage = 'ネットワークエラーが発生しました';
       showError('ネットワークエラー', errorMessage);
     } finally {

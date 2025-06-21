@@ -20,7 +20,7 @@ export default function LessonCreateModal({
   isOpen,
   onClose,
   onLessonCreated,
-  courses,
+  // courses, // Unused prop
 }: LessonCreateModalProps) {
   const { showSuccess, showError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -74,7 +74,7 @@ export default function LessonCreateModal({
       if (response.ok) {
         setChapters(data.chapters);
       }
-    } catch (error) {
+    } catch {
       console.error("チャプター取得エラー:", error);
     }
   };
@@ -103,7 +103,7 @@ export default function LessonCreateModal({
         setError(errorMessage);
         showError("レッスン作成失敗", errorMessage);
       }
-    } catch (error) {
+    } catch {
       const errorMessage = "ネットワークエラーが発生しました";
       setError(errorMessage);
       showError("ネットワークエラー", errorMessage);

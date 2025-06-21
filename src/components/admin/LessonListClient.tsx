@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   PencilIcon,
   TrashIcon,
-  EyeIcon,
+  // EyeIcon, // Unused import
   PlusIcon,
   MagnifyingGlassIcon,
   DocumentIcon,
@@ -62,7 +62,7 @@ export default function LessonListClient({ lessons: initialLessons }: LessonList
   ).map(courseId => {
     const lesson = lessons.find(l => l.chapter.course.id === courseId);
     return lesson ? lesson.chapter.course : null;
-  }).filter(Boolean);
+  }).filter((course): course is NonNullable<typeof course> => course !== null);
 
   // レッスン削除
   const handleDelete = async (lessonId: number, lessonTitle: string) => {
@@ -82,7 +82,7 @@ export default function LessonListClient({ lessons: initialLessons }: LessonList
         const data = await response.json();
         showError('削除失敗', data.error || 'レッスンの削除に失敗しました');
       }
-    } catch (error) {
+    } catch {
       showError('ネットワークエラー', 'ネットワークエラーが発生しました');
     }
   };

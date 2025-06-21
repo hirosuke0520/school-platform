@@ -52,7 +52,7 @@ export default function ChapterDeleteModal({ isOpen, onClose, onChapterDeleted, 
         const errorMessage = data.error || 'チャプター削除に失敗しました';
         showError('チャプター削除失敗', errorMessage);
       }
-    } catch (error) {
+    } catch {
       showError('ネットワークエラー', 'ネットワークエラーが発生しました');
     } finally {
       setIsLoading(false);

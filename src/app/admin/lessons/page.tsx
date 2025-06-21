@@ -60,7 +60,11 @@ export default async function AdminLessonsPage() {
         </div>
 
         <Suspense fallback={<div className="text-center py-8">読み込み中...</div>}>
-          <LessonListClient lessons={lessons} />
+          <LessonListClient lessons={lessons.map(lesson => ({
+            ...lesson,
+            createdAt: lesson.createdAt.toISOString(),
+            updatedAt: lesson.updatedAt.toISOString()
+          }))} />
         </Suspense>
       </div>
     </div>

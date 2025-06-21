@@ -20,6 +20,13 @@ export function Toast({ toast, onRemove }: ToastProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
+  const handleRemove = () => {
+    setIsLeaving(true);
+    setTimeout(() => {
+      onRemove(toast.id);
+    }, 300);
+  };
+
   useEffect(() => {
     // エントランスアニメーション
     const timer = setTimeout(() => setIsVisible(true), 10);
@@ -34,14 +41,7 @@ export function Toast({ toast, onRemove }: ToastProps) {
       clearTimeout(timer);
       clearTimeout(autoRemoveTimer);
     };
-  }, []);
-
-  const handleRemove = () => {
-    setIsLeaving(true);
-    setTimeout(() => {
-      onRemove(toast.id);
-    }, 300);
-  };
+  }, [toast.duration, handleRemove]);
 
   const bgColor = toast.type === 'success' 
     ? 'bg-green-50 border-green-200' 

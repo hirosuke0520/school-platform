@@ -55,14 +55,15 @@ async function getChapters(courseId: number) {
 }
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
     lessonId: string;
-  };
+  }>;
 }
 
 export default async function LessonPage({ params }: PageProps) {
-  const lesson = await getLesson(params.id, params.lessonId);
+  const resolvedParams = await params;
+  const lesson = await getLesson(resolvedParams.id, resolvedParams.lessonId);
 
   if (!lesson) {
     notFound();

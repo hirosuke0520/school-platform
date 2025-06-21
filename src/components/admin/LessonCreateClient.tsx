@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation'; // Unused for now
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { 
@@ -25,7 +25,7 @@ interface LessonCreateClientProps {
 }
 
 export default function LessonCreateClient({ course, chapters }: LessonCreateClientProps) {
-  const router = useRouter();
+  // const router = useRouter(); // Unused for now
   const { showSuccess, showError } = useToast();
   
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +35,7 @@ export default function LessonCreateClient({ course, chapters }: LessonCreateCli
   const [isEditMode, setIsEditMode] = useState(false); // 編集モードフラグ
   const [formData, setFormData] = useState({
     title: '',
-    chapterId: chapters.length > 0 ? chapters[0].id : '',
+    chapterId: chapters.length > 0 ? chapters[0].id.toString() : '',
     orderIndex: 1,
     estimatedMinutes: 30,
   });
@@ -189,7 +189,7 @@ export default function LessonCreateClient({ course, chapters }: LessonCreateCli
         const errorMessage = data.error || '下書き保存に失敗しました';
         showError('下書き保存失敗', errorMessage);
       }
-    } catch (error) {
+    } catch {
       showError('ネットワークエラー', 'ネットワークエラーが発生しました');
     } finally {
       setIsDraftSaving(false);
@@ -384,7 +384,7 @@ export default function LessonCreateClient({ course, chapters }: LessonCreateCli
                 onChange={(val) => setContent(val || '')}
                 preview="live"
                 hideToolbar={false}
-                visibleDragBar={false}
+                visibleDragbar={false}
                 textareaProps={{
                   placeholder: 'ここにマークダウンでレッスン内容を入力してください...',
                   style: {

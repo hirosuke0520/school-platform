@@ -107,7 +107,6 @@ export async function POST(request: NextRequest) {
         description,
         courseId: parseInt(courseId),
         orderIndex: finalOrderIndex,
-        isActive: true,
         isDeleted: false
       },
       include: {
