@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth-utils";
+import LearnerHeader from "@/components/LearnerHeader";
+import ToastProvider from "@/components/ToastProvider";
+import LearnerErrorHandler from "@/components/LearnerErrorHandler";
 
 // アイコンマッピング
 const technologyIcons: Record<string, { icon: string; color: string }> = {
@@ -15,6 +19,7 @@ const technologyIcons: Record<string, { icon: string; color: string }> = {
 };
 
 export default async function Dashboard() {
+  await requireAuth();
   // DBからコースデータを取得
   const courses = await prisma.course.findMany({
     orderBy: { orderIndex: "asc" },
@@ -66,40 +71,8 @@ export default async function Dashboard() {
   });
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Header */}
-      <header className="bg-slate-800/50 backdrop-blur-xs border-b border-slate-700/50 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              {/* Logo Icon - より洗練されたデザイン */}
-              <div className="relative">
-                <div className="w-10 h-10 bg-linear-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-sm">
-                  <div className="w-6 h-6 border-2 border-white rounded-xs transform rotate-12"></div>
-                </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-400 rounded-full"></div>
-              </div>
-              <div>
-                <h1 className="text-white text-2xl font-bold">Code Strategy</h1>
-                <p className="text-slate-400 text-sm">
-                  プログラミング学習プラットフォーム
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center space-x-2 text-slate-300">
-                <span className="text-sm">進捗率</span>
-                <div className="w-20 h-2 bg-slate-700 rounded-full">
-                  <div className="w-1/3 h-2 bg-cyan-400 rounded-full"></div>
-                </div>
-                <span className="text-sm font-medium">33%</span>
-              </div>
-              <div className="w-10 h-10 bg-linear-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-sm cursor-pointer hover:scale-105 transition-transform">
-                <span className="text-slate-800 text-xs font-bold">検証</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <LearnerHeader />
+      <LearnerErrorHandler />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* ウェルカムメッセージ */}
@@ -247,6 +220,8 @@ export default async function Dashboard() {
           </div>
         </div>
       </main>
+      
+      <ToastProvider />
     </div>
   );
 }

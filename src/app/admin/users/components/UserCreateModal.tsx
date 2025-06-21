@@ -72,7 +72,7 @@ export default function UserCreateModal({
       if (response.ok) {
         showSuccess(
           "ユーザー作成完了",
-          `${formData.name}さんのアカウントを作成しました`
+          `${formData.name}さんのアカウントを作成しました。仮パスワード: ${data.temporaryPassword}`
         );
         onUserCreated(); // 親コンポーネントに成功を通知
       } else {

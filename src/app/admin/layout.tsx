@@ -5,18 +5,30 @@ import {
   ChartBarIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
+import { requireAdminAuth, hasUserManagementAccess } from "@/lib/auth-utils";
+import AdminHeader from "@/components/admin/AdminHeader";
+import ToastProvider from "@/components/ToastProvider";
+import AdminErrorHandler from "@/components/admin/AdminErrorHandler";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const navigation = [
+  const session = await requireAdminAuth();
+  const baseNavigation = [
     { name: "ダッシュボード", href: "/admin", icon: ChartBarIcon },
-    { name: "ユーザー管理", href: "/admin/users", icon: UserGroupIcon },
     { name: "コンテンツ管理", href: "/admin/courses", icon: BookOpenIcon },
     { name: "設定", href: "/admin/settings", icon: Cog6ToothIcon },
   ];
+
+  const navigation = hasUserManagementAccess(session.user.role)
+    ? [
+        baseNavigation[0],
+        { name: "ユーザー管理", href: "/admin/users", icon: UserGroupIcon },
+        ...baseNavigation.slice(1),
+      ]
+    : baseNavigation;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -47,22 +59,13 @@ export default function AdminLayout({
 
       {/* メインコンテンツ */}
       <div className="ml-64">
-        <header className="bg-white shadow-sm border-b border-gray-200">
-          <div className="flex h-16 items-center justify-between px-6">
-            <h2 className="text-xl font-semibold text-gray-900">管理画面</h2>
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">
-                管理者: admin@example.com
-              </div>
-              <div className="w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">A</span>
-              </div>
-            </div>
-          </div>
-        </header>
+        <AdminHeader />
+        <AdminErrorHandler />
 
         <main className="p-6">{children}</main>
       </div>
+      
+      <ToastProvider />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { generateTemporaryPassword, hashPassword } from '@/lib/password-utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,12 +30,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 仮パスワード生成
+    const temporaryPassword = generateTemporaryPassword();
+    const hashedPassword = await hashPassword(temporaryPassword);
+
     // ユーザー作成
     const user = await prisma.user.create({
       data: {
         name,
         email,
         role: role as 'ADMIN' | 'INSTRUCTOR' | 'LEARNER',
+        passwordHash: hashedPassword,
+        isFirstLogin: true,
       },
     });
 
@@ -46,6 +53,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         role: user.role,
       },
+      temporaryPassword,
     });
 
   } catch (error) {
