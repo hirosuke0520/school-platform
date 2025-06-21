@@ -115,9 +115,9 @@ export default function ContentManagement({ courses, coursesWithDetails }: Conte
                 </div>
                 <div className="flex space-x-2">
                   <Link
-                    href={`/courses/${course.id}`}
-                    className="text-gray-600 hover:text-gray-900 p-1 rounded hover:bg-gray-100"
-                    title="プレビュー"
+                    href={`/admin/content/${course.id}`}
+                    className="text-gray-600 hover:text-gray-900 p-1 rounded hover:bg-gray-100 cursor-pointer"
+                    title="コース詳細"
                   >
                     <EyeIcon className="h-4 w-4" />
                   </Link>

@@ -10,12 +10,13 @@ export async function GET() {
       },
       include: {
         chapter: {
-          include: {
+          select: {
+            id: true,
+            title: true,
             course: {
               select: {
                 id: true,
-                title: true,
-                technology: true
+                title: true
               }
             }
           }
@@ -54,7 +55,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, content, chapterId, estimatedMinutes, orderIndex } = body;
+    const { title, content, chapterId, estimatedMinutes, orderIndex, isPublished = false } = body;
 
     // バリデーション
     if (!title || !content || !chapterId) {
@@ -111,16 +112,18 @@ export async function POST(request: NextRequest) {
         chapterId: parseInt(chapterId),
         estimatedMinutes: estimatedMinutes || null,
         orderIndex: finalOrderIndex,
+        isPublished,
         isDeleted: false
       },
       include: {
         chapter: {
-          include: {
+          select: {
+            id: true,
+            title: true,
             course: {
               select: {
                 id: true,
-                title: true,
-                technology: true
+                title: true
               }
             }
           }

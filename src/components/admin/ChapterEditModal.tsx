@@ -2,40 +2,40 @@
 
 import { useState, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { Course } from '@prisma/client';
+import { Course, Chapter } from '@prisma/client';
 import { useToast } from '@/contexts/ToastContext';
 
-interface ChapterCreateModalProps {
+interface ChapterEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onChapterCreated: () => void;
+  onChapterUpdated: () => void;
+  chapter: Chapter | null;
   courses: Course[];
-  selectedCourseId?: number;
 }
 
-export default function ChapterCreateModal({ isOpen, onClose, onChapterCreated, courses, selectedCourseId }: ChapterCreateModalProps) {
+export default function ChapterEditModal({ isOpen, onClose, onChapterUpdated, chapter, courses }: ChapterEditModalProps) {
   const { showSuccess, showError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    courseId: selectedCourseId ? selectedCourseId.toString() : (courses.length > 0 ? courses[0].id.toString() : ''),
+    courseId: '',
     orderIndex: 1,
   });
 
-  // モーダルが開かれるたびにフォームをリセット
+  // モーダルが開かれるたびにフォームを初期化
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && chapter) {
       setFormData({
-        title: '',
-        description: '',
-        courseId: selectedCourseId ? selectedCourseId.toString() : (courses.length > 0 ? courses[0].id.toString() : ''),
-        orderIndex: 1,
+        title: chapter.title,
+        description: chapter.description || '',
+        courseId: chapter.courseId.toString(),
+        orderIndex: chapter.orderIndex,
       });
       setError('');
     }
-  }, [isOpen, courses, selectedCourseId]);
+  }, [isOpen, chapter]);
 
   // ESCキーでモーダルを閉じる
   useEffect(() => {
@@ -56,12 +56,14 @@ export default function ChapterCreateModal({ isOpen, onClose, onChapterCreated, 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!chapter) return;
+    
     setIsLoading(true);
     setError('');
 
     try {
-      const response = await fetch('/api/admin/chapters', {
-        method: 'POST',
+      const response = await fetch(`/api/admin/chapters/${chapter.id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -71,12 +73,12 @@ export default function ChapterCreateModal({ isOpen, onClose, onChapterCreated, 
       const data = await response.json();
 
       if (response.ok) {
-        showSuccess('チャプター作成完了', `「${formData.title}」を作成しました`);
-        onChapterCreated(); // 親コンポーネントに成功を通知
+        showSuccess('チャプター更新完了', `「${formData.title}」を更新しました`);
+        onChapterUpdated();
       } else {
-        const errorMessage = data.error || 'チャプター作成に失敗しました';
+        const errorMessage = data.error || 'チャプター更新に失敗しました';
         setError(errorMessage);
-        showError('チャプター作成失敗', errorMessage);
+        showError('チャプター更新失敗', errorMessage);
       }
     } catch (error) {
       const errorMessage = 'ネットワークエラーが発生しました';
@@ -95,7 +97,7 @@ export default function ChapterCreateModal({ isOpen, onClose, onChapterCreated, 
     }));
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !chapter) return null;
 
   return (
     <>
@@ -112,7 +114,7 @@ export default function ChapterCreateModal({ isOpen, onClose, onChapterCreated, 
           <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-900">新規チャプター作成</h3>
+                <h3 className="text-lg font-medium text-gray-900">チャプター編集</h3>
                 <button
                   onClick={onClose}
                   className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 cursor-pointer"
@@ -148,27 +150,21 @@ export default function ChapterCreateModal({ isOpen, onClose, onChapterCreated, 
                   <label htmlFor="courseId" className="block text-sm font-medium text-gray-700 mb-1">
                     所属コース <span className="text-red-500">*</span>
                   </label>
-                  {selectedCourseId ? (
-                    <div className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-700">
-                      {courses.find(c => c.id === selectedCourseId)?.title || 'コースが見つかりません'}
-                    </div>
-                  ) : (
-                    <select
-                      id="courseId"
-                      name="courseId"
-                      required
-                      value={formData.courseId}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">コースを選択してください</option>
-                      {courses.map((course) => (
-                        <option key={course.id} value={course.id}>
-                          {course.title}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+                  <select
+                    id="courseId"
+                    name="courseId"
+                    required
+                    value={formData.courseId}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">コースを選択してください</option>
+                    {courses.map((course) => (
+                      <option key={course.id} value={course.id}>
+                        {course.title}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -201,12 +197,6 @@ export default function ChapterCreateModal({ isOpen, onClose, onChapterCreated, 
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-
-                <div className="bg-green-50 border border-green-200 rounded-md p-3">
-                  <p className="text-sm text-green-800">
-                    作成後、このチャプターにレッスンを追加できます。
-                  </p>
-                </div>
               </form>
             </div>
 
@@ -217,7 +207,7 @@ export default function ChapterCreateModal({ isOpen, onClose, onChapterCreated, 
                 disabled={isLoading}
                 className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                {isLoading ? '作成中...' : 'チャプターを作成'}
+                {isLoading ? '更新中...' : 'チャプターを更新'}
               </button>
               <button
                 type="button"

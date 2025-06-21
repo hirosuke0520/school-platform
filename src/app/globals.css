@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import '@uiw/react-md-editor/markdown-editor.css';
+@import '@uiw/react-markdown-preview/markdown.css';
 
 @theme {
   --color-blue-primary: #3b82f6;
@@ -28,4 +30,44 @@
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* マークダウンエディターのツールチップカスタマイズ */
+.w-md-editor .w-md-editor-toolbar button[data-tooltip] {
+  position: relative;
+}
+
+.w-md-editor .w-md-editor-toolbar button[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1f2937;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 9999;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.w-md-editor .w-md-editor-toolbar button[data-tooltip]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #1f2937;
+  z-index: 9999;
+}
+
+/* 全てのツールバーボタンにポジション設定 */
+.w-md-editor-toolbar button {
+  position: relative !important;
 }

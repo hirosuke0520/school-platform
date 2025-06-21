@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { 
-  UserGroupIcon, 
-  BookOpenIcon, 
+import {
+  UserGroupIcon,
+  BookOpenIcon,
   ChartBarIcon,
-  Cog6ToothIcon 
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 
 export default function AdminLayout({
@@ -12,10 +12,10 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const navigation = [
-    { name: 'ダッシュボード', href: '/admin', icon: ChartBarIcon },
-    { name: 'ユーザー管理', href: '/admin/users', icon: UserGroupIcon },
-    { name: 'コンテンツ管理', href: '/admin/content', icon: BookOpenIcon },
-    { name: '設定', href: '/admin/settings', icon: Cog6ToothIcon },
+    { name: "ダッシュボード", href: "/admin", icon: ChartBarIcon },
+    { name: "ユーザー管理", href: "/admin/users", icon: UserGroupIcon },
+    { name: "コンテンツ管理", href: "/admin/courses", icon: BookOpenIcon },
+    { name: "設定", href: "/admin/settings", icon: Cog6ToothIcon },
   ];
 
   return (
@@ -30,7 +30,7 @@ export default function AdminLayout({
             <h1 className="text-white text-lg font-bold">Code Strategy</h1>
           </div>
         </div>
-        
+
         <nav className="mt-8 px-4 space-y-2">
           {navigation.map((item) => (
             <Link
@@ -51,17 +51,17 @@ export default function AdminLayout({
           <div className="flex h-16 items-center justify-between px-6">
             <h2 className="text-xl font-semibold text-gray-900">管理画面</h2>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">管理者: admin@example.com</div>
+              <div className="text-sm text-gray-600">
+                管理者: admin@example.com
+              </div>
               <div className="w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-bold">A</span>
               </div>
             </div>
           </div>
         </header>
-        
-        <main className="p-6">
-          {children}
-        </main>
+
+        <main className="p-6">{children}</main>
       </div>
     </div>
   );

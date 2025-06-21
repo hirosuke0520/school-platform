@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,89 +8,80 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  passwordHash  String?   @map("password_hash")
-  role          UserRole  @default(LEARNER)
-  emailVerified DateTime? @map("email_verified")
-  isDeleted     Boolean   @default(false) @map("is_deleted")
-  deletedAt     DateTime? @map("deleted_at")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  progress        UserProgress[]
+  id               String            @id @default(cuid())
+  email            String            @unique
+  name             String?
+  passwordHash     String?           @map("password_hash")
+  role             UserRole          @default(LEARNER)
+  emailVerified    DateTime?         @map("email_verified")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  deletedAt        DateTime?         @map("deleted_at")
+  isDeleted        Boolean           @default(false) @map("is_deleted")
   learningSessions LearningSession[]
+  progress         UserProgress[]
 
   @@map("users")
 }
 
 model Course {
-  id          Int      @id @default(autoincrement())
   title       String
   description String?
-  orderIndex  Int      @map("order_index")
-  isActive    Boolean  @default(true) @map("is_active")
-  isDeleted   Boolean  @default(false) @map("is_deleted")
+  orderIndex  Int       @map("order_index")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  id          Int       @id @default(autoincrement())
   deletedAt   DateTime? @map("deleted_at")
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  // Relations
-  chapters Chapter[]
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+  chapters    Chapter[]
 
   @@map("courses")
 }
 
 model Chapter {
-  id          Int      @id @default(autoincrement())
-  courseId    Int      @map("course_id")
   title       String
   description String?
-  orderIndex  Int      @map("order_index")
-  isDeleted   Boolean  @default(false) @map("is_deleted")
+  orderIndex  Int       @map("order_index")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  id          Int       @id @default(autoincrement())
+  courseId    Int       @map("course_id")
   deletedAt   DateTime? @map("deleted_at")
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  // Relations
-  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessons Lesson[]
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
 
   @@map("chapters")
 }
 
 model Lesson {
-  id                Int      @id @default(autoincrement())
-  chapterId         Int      @map("chapter_id")
-  title             String
-  content           String
-  estimatedMinutes  Int?     @map("estimated_minutes")
-  orderIndex        Int      @map("order_index")
-  isDeleted         Boolean  @default(false) @map("is_deleted")
-  deletedAt         DateTime? @map("deleted_at")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
-
-  // Relations
+  title            String
+  content          String
+  estimatedMinutes Int?              @map("estimated_minutes")
+  orderIndex       Int               @map("order_index")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  id               Int               @id @default(autoincrement())
+  chapterId        Int               @map("chapter_id")
+  deletedAt        DateTime?         @map("deleted_at")
+  isDeleted        Boolean           @default(false) @map("is_deleted")
+  isPublished      Boolean           @default(false) @map("is_published")
+  learningSessions LearningSession[]
   chapter          Chapter           @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   progress         UserProgress[]
-  learningSessions LearningSession[]
 
   @@map("lessons")
 }
 
 model UserProgress {
-  id          String           @id @default(cuid())
-  userId      String           @map("user_id")
-  lessonId    Int              @map("lesson_id")
-  status      ProgressStatus   @default(NOT_STARTED)
-  startedAt   DateTime?        @map("started_at")
-  completedAt DateTime?        @map("completed_at")
-  createdAt   DateTime         @default(now()) @map("created_at")
-
-  // Relations
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  id          String         @id @default(cuid())
+  userId      String         @map("user_id")
+  status      ProgressStatus @default(NOT_STARTED)
+  startedAt   DateTime?      @map("started_at")
+  completedAt DateTime?      @map("completed_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  lessonId    Int            @map("lesson_id")
+  lesson      Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
   @@map("user_progress")
@@ -102,20 +90,17 @@ model UserProgress {
 model LearningSession {
   id              String    @id @default(cuid())
   userId          String    @map("user_id")
-  lessonId        Int       @map("lesson_id")
   startedAt       DateTime  @map("started_at")
   endedAt         DateTime? @map("ended_at")
   durationMinutes Int?      @map("duration_minutes")
   createdAt       DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId        Int       @map("lesson_id")
+  lesson          Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("learning_sessions")
 }
 
-// Enums
 enum UserRole {
   ADMIN
   INSTRUCTOR
