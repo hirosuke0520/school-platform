@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt, { hash } from "bcryptjs";
 
@@ -177,6 +178,7 @@ describe("データベース表示統合テスト", () => {
       const chapter2 = await prisma.chapter.create({
         data: {
           title: "第2章",
+          description: "応用編",
           orderIndex: 2,
           courseId: course.id,
         },
@@ -207,7 +209,7 @@ describe("データベース表示統合テスト", () => {
       const lesson3 = await prisma.lesson.create({
         data: {
           title: "レッスン2-1",
-          content: "これは第2章の最初のレッスンです",
+          content: "これは第2章のレッスンです",
           estimatedMinutes: 45,
           orderIndex: 1,
           chapterId: chapter2.id,
@@ -235,6 +237,7 @@ describe("データベース表示統合テスト", () => {
       expect(courseWithChapters?.chapters[1].lessons).toHaveLength(1);
       expect(lesson1.isPublished).toBe(true);
       expect(lesson2.isPublished).toBe(false);
+      expect(lesson3.isPublished).toBe(true);
     });
   });
 
@@ -328,7 +331,9 @@ describe("データベース表示統合テスト", () => {
         data: {
           userId: user.id,
           lessonId: lesson2.id,
-          startedAt: new Date(),
+          startedAt: new Date(Date.now() - 180000),
+          endedAt: new Date(Date.now() - 120000),
+          durationMinutes: 60,
         },
       });
 
@@ -375,6 +380,7 @@ describe("データベース表示統合テスト", () => {
       });
 
       expect(userSessions).toHaveLength(2);
+      expect(session1.durationMinutes).toBe(60);
       expect(session2.durationMinutes).toBe(30);
     });
   });
@@ -439,7 +445,7 @@ describe("データベース表示統合テスト", () => {
             title: "無効なチャプター",
             description: "存在しないコースのチャプター",
             orderIndex: 1,
-            courseId: "non-existent-id",
+            courseId: 999999, // Invalid numeric ID
           },
         })
       ).rejects.toThrow();

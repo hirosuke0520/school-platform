@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Course, Chapter } from "@prisma/client";
 import { useToast } from "@/contexts/ToastContext";
@@ -20,8 +20,8 @@ export default function LessonCreateModal({
   isOpen,
   onClose,
   onLessonCreated,
-  // courses, // Unused prop
-}: LessonCreateModalProps) {
+}: // courses, // Unused prop
+LessonCreateModalProps) {
   const { showSuccess, showError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -33,6 +33,19 @@ export default function LessonCreateModal({
     estimatedMinutes: 15,
     orderIndex: 1,
   });
+
+  // チャプター一覧を取得
+  const fetchChapters = useCallback(async () => {
+    try {
+      const response = await fetch("/api/admin/chapters");
+      const data = await response.json();
+      if (response.ok) {
+        setChapters(data.chapters);
+      }
+    } catch (fetchError) {
+      console.error("チャプター取得エラー:", fetchError);
+    }
+  }, []);
 
   // モーダルが開かれるたびにフォームをリセット
   useEffect(() => {
@@ -47,7 +60,7 @@ export default function LessonCreateModal({
       setError("");
       fetchChapters();
     }
-  }, [isOpen]);
+  }, [isOpen, fetchChapters]);
 
   // ESCキーでモーダルを閉じる
   useEffect(() => {
@@ -65,19 +78,6 @@ export default function LessonCreateModal({
       document.removeEventListener("keydown", handleEscapeKey);
     };
   }, [isOpen, onClose]);
-
-  // チャプター一覧を取得
-  const fetchChapters = async () => {
-    try {
-      const response = await fetch("/api/admin/chapters");
-      const data = await response.json();
-      if (response.ok) {
-        setChapters(data.chapters);
-      }
-    } catch {
-      console.error("チャプター取得エラー:", error);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

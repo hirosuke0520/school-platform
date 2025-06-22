@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { CheckCircleIcon, XCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export interface ToastData {
@@ -20,12 +20,12 @@ export function Toast({ toast, onRemove }: ToastProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
-  const handleRemove = () => {
+  const handleRemove = useCallback(() => {
     setIsLeaving(true);
     setTimeout(() => {
       onRemove(toast.id);
     }, 300);
-  };
+  }, [onRemove, toast.id]);
 
   useEffect(() => {
     // エントランスアニメーション

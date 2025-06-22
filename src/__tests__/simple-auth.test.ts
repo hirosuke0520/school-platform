@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest'
 import bcrypt from 'bcryptjs'
 
 describe('認証機能基本テスト', () => {
