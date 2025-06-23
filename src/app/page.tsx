@@ -4,6 +4,9 @@ import { requireAuth } from "@/lib/auth-utils";
 import LearnerHeader from "@/components/LearnerHeader";
 import ToastProvider from "@/components/ToastProvider";
 import LearnerErrorHandler from "@/components/LearnerErrorHandler";
+import PersonalProgressStats from "@/components/PersonalProgressStats";
+import RecentLearningActivity from "@/components/RecentLearningActivity";
+import RecommendedLessons from "@/components/RecommendedLessons";
 
 // アイコンマッピング
 const technologyIcons: Record<string, { icon: string; color: string }> = {
@@ -19,31 +22,79 @@ const technologyIcons: Record<string, { icon: string; color: string }> = {
 };
 
 export default async function Dashboard() {
-  await requireAuth();
-  // DBからコースデータを取得
+  const session = await requireAuth();
+  const userId = session.user.id;
+
+  // ユーザーの進捗データを含むコースデータを取得
   const courses = await prisma.course.findMany({
     orderBy: { orderIndex: "asc" },
     include: {
       chapters: {
         include: {
-          lessons: true,
+          lessons: {
+            include: {
+              progress: {
+                where: { userId },
+              },
+            },
+          },
         },
+        orderBy: { orderIndex: "asc" },
       },
     },
   });
 
-  // 基本コース一覧用（ID 1-9）
-  const basicCourses = courses.filter(course => course.id <= 9);
-  
-  // 進行中の学習（詳細コース ID 10, 11）
-  const currentLearning = courses.filter(course => course.id >= 10);
+  // ユーザーの学習統計を取得
+  const userProgress = await prisma.userProgress.findMany({
+    where: { userId },
+    include: {
+      lesson: {
+        include: {
+          chapter: {
+            include: {
+              course: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
 
-  // 各コースのレッスン数を計算
-  const coursesWithLessonCount = basicCourses.map((course) => {
-    const lessonCount = course.chapters.reduce(
-      (total, chapter) => total + chapter.lessons.length,
-      0
+  // 最近の学習セッションを取得
+  const recentSessions = await prisma.learningSession.findMany({
+    where: { userId },
+    include: {
+      lesson: {
+        include: {
+          chapter: {
+            include: {
+              course: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { startedAt: 'desc' },
+    take: 5,
+  });
+
+  // 基本コース一覧（進捗追跡用）
+  const basicCourses = courses;
+
+  // 各コースの進捗状況を計算
+  const coursesWithProgressData = basicCourses.map((course) => {
+    const allLessons = course.chapters.flatMap(chapter => chapter.lessons);
+    const completedLessons = allLessons.filter(lesson => 
+      lesson.progress.some(p => p.status === 'COMPLETED')
     );
+    const inProgressLessons = allLessons.filter(lesson => 
+      lesson.progress.some(p => p.status === 'IN_PROGRESS')
+    );
+    
+    const progressRate = allLessons.length > 0 
+      ? Math.round((completedLessons.length / allLessons.length) * 100) 
+      : 0;
     
     // コースタイトルから技術を推測
     const title = course.title.toLowerCase();
@@ -63,12 +114,49 @@ export default async function Dashboard() {
       color: "bg-gray-500",
     };
 
+    // 現在のレッスンを特定
+    const currentLesson = allLessons.find(lesson => 
+      lesson.progress.some(p => p.status === 'IN_PROGRESS')
+    ) || allLessons.find(lesson => 
+      lesson.progress.length === 0
+    );
+
     return {
       ...course,
-      lessonCount,
+      lessonCount: allLessons.length,
+      completedLessons: completedLessons.length,
+      inProgressLessons: inProgressLessons.length,
+      progressRate,
+      currentLesson,
+      hasProgress: completedLessons.length > 0 || inProgressLessons.length > 0,
       ...techData,
     };
   });
+
+  // 進行中のコース（進捗があるコース）
+  const activeCourses = coursesWithProgressData.filter(course => course.hasProgress);
+
+  // 学習統計を計算
+  const totalLessonsCompleted = userProgress.filter(p => p.status === 'COMPLETED').length;
+  const totalLessonsInProgress = userProgress.filter(p => p.status === 'IN_PROGRESS').length;
+  const totalLearningTime = recentSessions.reduce((total, session) => {
+    if (session.endedAt) {
+      return total + (new Date(session.endedAt).getTime() - new Date(session.startedAt).getTime());
+    }
+    return total;
+  }, 0);
+
+  // 学習ストリークを計算（簡易版）
+  const today = new Date();
+  // const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+  const hasLearningToday = recentSessions.some(session => {
+    const sessionDate = new Date(session.startedAt);
+    return sessionDate.toDateString() === today.toDateString();
+  });
+  // const hasLearningYesterday = recentSessions.some(session => {
+  //   const sessionDate = new Date(session.startedAt);
+  //   return sessionDate.toDateString() === yesterday.toDateString();
+  // });
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
       <LearnerHeader />
@@ -85,11 +173,29 @@ export default async function Dashboard() {
           </p>
         </div>
 
+        {/* 個人進捗統計 */}
+        <PersonalProgressStats 
+          totalCompleted={totalLessonsCompleted}
+          totalInProgress={totalLessonsInProgress}
+          totalLearningTime={totalLearningTime}
+          hasLearningToday={hasLearningToday}
+        />
+
+        {/* 最近の学習活動 */}
+        <RecentLearningActivity 
+          recentSessions={recentSessions}
+        />
+
+        {/* 推奨レッスン */}
+        <RecommendedLessons 
+          coursesWithProgress={activeCourses}
+        />
+
         {/* 学習中のコンテンツ */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold text-white">
-              学習中のコンテンツ
+              進行中のコース
             </h3>
             <Link
               href="/courses"
@@ -98,63 +204,76 @@ export default async function Dashboard() {
               すべて見る →
             </Link>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {currentLearning.map((course, index) => {
-              const progress = index === 0 ? 0 : 8; // PHPは未開始、Laravelは8/9進行中
-              const total = index === 0 ? 2 : 9;
-              const lessonNumber = index === 0 ? 18 : 28;
+          
+          {activeCourses.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {activeCourses.slice(0, 4).map((course) => {
+                const currentLessonIndex = course.currentLesson 
+                  ? course.chapters.flatMap(c => c.lessons).findIndex(l => l.id === course.currentLesson?.id) + 1
+                  : 1;
 
-              return (
-                <Link
-                  key={course.id}
-                  href={`/courses/${course.id}`}
-                  className="group block cursor-pointer"
-                >
-                  <div className="bg-linear-to-r from-slate-800 to-slate-700 border border-slate-600 rounded-lg p-6 hover:border-cyan-400/50 transition-all duration-300 group-hover:shadow-sm group-hover:shadow-cyan-400/10 group-hover:-translate-y-1">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="bg-linear-to-r from-cyan-500 to-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-sm">
-                        Lesson {lessonNumber}
+                return (
+                  <Link
+                    key={course.id}
+                    href={`/courses/${course.id}`}
+                    className="group block cursor-pointer"
+                  >
+                    <div className="bg-linear-to-r from-slate-800 to-slate-700 border border-slate-600 rounded-lg p-6 hover:border-cyan-400/50 transition-all duration-300 group-hover:shadow-sm group-hover:shadow-cyan-400/10 group-hover:-translate-y-1">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="bg-linear-to-r from-cyan-500 to-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-sm">
+                          Lesson {currentLessonIndex}
+                        </div>
+                        <div className="text-right">
+                          <div className="text-slate-400 text-sm">進捗</div>
+                          <div className="text-cyan-400 text-lg font-bold">
+                            {course.progressRate}%
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-slate-400 text-sm">進捗</div>
-                        <div className="text-cyan-400 text-lg font-bold">
-                          {Math.round((progress / total) * 100)}%
+
+                      <div className="mb-6">
+                        <h4 className="text-white text-2xl font-bold mb-2 group-hover:text-cyan-400 transition-colors">
+                          {course.title}
+                        </h4>
+                        <p className="text-slate-300 text-base">
+                          {course.description}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-400">学習進捗</span>
+                          <span className="text-white font-medium">
+                            {course.completedLessons}/{course.lessonCount} 完了
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-700 rounded-full h-3">
+                          <div
+                            className="h-3 rounded-full bg-linear-to-r from-cyan-400 to-blue-500 transition-all duration-500"
+                            style={{
+                              width: `${course.progressRate}%`,
+                            }}
+                          />
                         </div>
                       </div>
                     </div>
-
-                    <div className="mb-6">
-                      <h4 className="text-white text-2xl font-bold mb-2 group-hover:text-cyan-400 transition-colors">
-                        {course.title}
-                      </h4>
-                      <p className="text-slate-300 text-base">
-                        {course.description}
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-400">学習進捗</span>
-                        <span className="text-white font-medium">
-                          {progress}/{total} 完了
-                        </span>
-                      </div>
-                      <div className="w-full bg-slate-700 rounded-full h-3">
-                        <div
-                          className="h-3 rounded-full bg-linear-to-r from-cyan-400 to-blue-500 transition-all duration-500"
-                          style={{
-                            width: `${
-                              progress === 0 ? 8 : (progress / total) * 100
-                            }%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-8 text-center">
+              <div className="text-slate-400 text-4xl mb-4">🚀</div>
+              <h4 className="text-white text-xl font-bold mb-2">学習を始めましょう！</h4>
+              <p className="text-slate-400 mb-6">下記のコースから興味のあるものを選んで、学習をスタートしてください。</p>
+              <Link
+                href="/courses"
+                className="inline-flex items-center px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg transition-colors"
+              >
+                コース一覧を見る
+              </Link>
+            </div>
+          )}
         </section>
 
         {/* 学べる技術一覧 */}
@@ -162,11 +281,11 @@ export default async function Dashboard() {
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold text-white">学べる技術一覧</h3>
             <div className="text-slate-400 text-sm">
-              全{coursesWithLessonCount.length}コース
+              全{coursesWithProgressData.length}コース
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {coursesWithLessonCount.map((course) => (
+            {coursesWithProgressData.map((course) => (
               <Link
                 key={course.id}
                 href={`/courses/${course.id}`}
@@ -196,9 +315,33 @@ export default async function Dashboard() {
                     <p className="text-slate-300 text-sm mb-4 leading-relaxed">
                       {course.description}
                     </p>
+                    
+                    {/* 進捗バー */}
+                    {course.hasProgress && (
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                          <span>進捗状況</span>
+                          <span>{course.completedLessons}/{course.lessonCount}</span>
+                        </div>
+                        <div className="w-full bg-slate-700 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-500"
+                            style={{ width: `${course.progressRate}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="flex items-center justify-between">
-                      <div className="bg-slate-700 border border-slate-600 text-cyan-400 px-3 py-1 rounded-full text-sm font-medium">
-                        {course.lessonCount}レッスン
+                      <div className="flex items-center space-x-2">
+                        <div className="bg-slate-700 border border-slate-600 text-cyan-400 px-3 py-1 rounded-full text-sm font-medium">
+                          {course.lessonCount}レッスン
+                        </div>
+                        {course.hasProgress && (
+                          <div className="text-xs text-green-400 font-medium">
+                            {course.progressRate}%
+                          </div>
+                        )}
                       </div>
                       <div className="text-slate-400 group-hover:text-cyan-400 transition-colors">
                         →
