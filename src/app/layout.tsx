@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ToastProvider } from '@/contexts/ToastContext'
-import SessionProvider from '@/components/SessionProvider'
+import NextAuthSessionProvider from '@/components/SessionProvider'
+import { SessionProvider } from '@/contexts/SessionContext'
+import SessionManager from '@/components/SessionManager'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,11 +21,14 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={inter.className}>
-        <SessionProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
-        </SessionProvider>
+        <NextAuthSessionProvider>
+          <SessionProvider>
+            <ToastProvider>
+              <SessionManager />
+              {children}
+            </ToastProvider>
+          </SessionProvider>
+        </NextAuthSessionProvider>
       </body>
     </html>
   )
