@@ -4,6 +4,7 @@ import {
   BookOpenIcon,
   ChartBarIcon,
   Cog6ToothIcon,
+  AcademicCapIcon,
 } from "@heroicons/react/24/outline";
 import { requireAdminAuth, hasUserManagementAccess } from "@/lib/auth-utils";
 import AdminHeader from "@/components/admin/AdminHeader";
@@ -19,6 +20,7 @@ export default async function AdminLayout({
   const baseNavigation = [
     { name: "ダッシュボード", href: "/admin", icon: ChartBarIcon },
     { name: "コンテンツ管理", href: "/admin/courses", icon: BookOpenIcon },
+    { name: "進捗管理", href: "/admin/progress", icon: AcademicCapIcon },
     { name: "設定", href: "/admin/settings", icon: Cog6ToothIcon },
   ];
 

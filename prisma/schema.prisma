@@ -89,15 +89,15 @@ model UserProgress {
 }
 
 model LearningSession {
-  id              String    @id @default(cuid())
-  userId          String    @map("user_id")
-  startedAt       DateTime  @map("started_at")
-  endedAt         DateTime? @map("ended_at")
-  durationMinutes Int?      @map("duration_minutes")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  lessonId        Int       @map("lesson_id")
-  lesson          Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String    @id @default(cuid())
+  userId         String    @map("user_id")
+  startedAt      DateTime  @map("started_at")
+  endedAt        DateTime? @map("ended_at")
+  progressReport String?   @map("progress_report")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  lessonId       Int       @map("lesson_id")
+  lesson         Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("learning_sessions")
 }

@@ -7,10 +7,15 @@ import {
 import Breadcrumb from "../../../components/Breadcrumb";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
+import LessonCompletion from "@/components/LessonCompletion";
 
 export default async function LessonDetail({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const lessonId = parseInt(resolvedParams.id);
+  
+  // 認証情報を取得
+  const session = await auth();
   
   // DBからレッスンデータを取得
   const lesson = await prisma.lesson.findUnique({
@@ -47,6 +52,29 @@ export default async function LessonDetail({ params }: { params: Promise<{ id: s
   const currentIndex = allLessons.findIndex(l => l.id === lesson.id);
   const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
   const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
+
+  // ユーザーの進捗情報を取得
+  let userProgress = null;
+  let latestSession = null;
+  
+  if (session?.user) {
+    userProgress = await prisma.userProgress.findUnique({
+      where: {
+        userId_lessonId: {
+          userId: session.user.id,
+          lessonId: lessonId,
+        },
+      },
+    });
+
+    latestSession = await prisma.learningSession.findFirst({
+      where: {
+        userId: session.user.id,
+        lessonId: lessonId,
+      },
+      orderBy: { startedAt: 'desc' },
+    });
+  }
 
   const breadcrumbItems = [
     { name: lesson.chapter.course.title, href: `/courses/${lesson.chapter.course.id}` },
@@ -137,6 +165,15 @@ export default async function LessonDetail({ params }: { params: Promise<{ id: s
             />
           </div>
         </div>
+
+        {/* Lesson Completion */}
+        {session?.user?.role === 'LEARNER' && (
+          <LessonCompletion
+            lessonId={lessonId}
+            isCompleted={userProgress?.status === 'COMPLETED'}
+            initialProgressReport={latestSession?.progressReport || ''}
+          />
+        )}
 
         {/* Navigation */}
         <div className="flex justify-between items-center">

@@ -333,7 +333,7 @@ describe("データベース表示統合テスト", () => {
           lessonId: lesson2.id,
           startedAt: new Date(Date.now() - 180000),
           endedAt: new Date(Date.now() - 120000),
-          durationMinutes: 60,
+          progressReport: "1時間の学習を完了しました",
         },
       });
 
@@ -343,7 +343,7 @@ describe("データベース表示統合テスト", () => {
           lessonId: lesson3.id,
           startedAt: new Date(Date.now() - 120000),
           endedAt: new Date(),
-          durationMinutes: 30,
+          progressReport: "30分の短時間学習",
         },
       });
 
@@ -380,8 +380,8 @@ describe("データベース表示統合テスト", () => {
       });
 
       expect(userSessions).toHaveLength(2);
-      expect(session1.durationMinutes).toBe(60);
-      expect(session2.durationMinutes).toBe(30);
+      expect(session1.progressReport).toBe("1時間の学習を完了しました");
+      expect(session2.progressReport).toBe("30分の短時間学習");
     });
   });
 
