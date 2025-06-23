@@ -7,6 +7,6 @@
     }
   ],
   "env": {
-    "NEXTAUTH_URL": "https://your-app.vercel.app"
+    "AUTH_URL": "https://school-platform-nu.vercel.app/"
   }
 }
