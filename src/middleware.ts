@@ -45,3 +45,5 @@ export default auth((req: NextRequest & { auth: { user?: { role: string } } | nu
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|public).*)'],
 }
+
+export const runtime = 'nodejs'
