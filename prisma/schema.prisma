@@ -66,7 +66,6 @@ model Lesson {
   deletedAt        DateTime?         @map("deleted_at")
   isDeleted        Boolean           @default(false) @map("is_deleted")
   isPublished      Boolean           @default(false) @map("is_published")
-  learningSessions LearningSession[]
   chapter          Chapter           @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   progress         UserProgress[]
 
@@ -95,8 +94,6 @@ model LearningSession {
   endedAt        DateTime? @map("ended_at")
   progressReport String?   @map("progress_report")
   createdAt      DateTime  @default(now()) @map("created_at")
-  lessonId       Int?      @map("lesson_id")
-  lesson         Lesson?   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("learning_sessions")

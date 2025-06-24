@@ -38,9 +38,6 @@ export async function PUT(request: NextRequest) {
     // セッションの存在確認と所有者チェック
     const learningSession = await prisma.learningSession.findUnique({
       where: { id: sessionId },
-      include: {
-        lesson: true,
-      },
     });
 
     if (!learningSession) {
@@ -84,28 +81,7 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    // レッスンがある場合、そのレッスンを完了状態にする
-    if (learningSession.lessonId) {
-      await prisma.userProgress.upsert({
-        where: {
-          userId_lessonId: {
-            userId,
-            lessonId: learningSession.lessonId,
-          },
-        },
-        update: {
-          status: "COMPLETED",
-          completedAt: endDateTime,
-        },
-        create: {
-          userId,
-          lessonId: learningSession.lessonId,
-          status: "COMPLETED",
-          startedAt: startDateTime,
-          completedAt: endDateTime,
-        },
-      });
-    }
+    // レッスン完了処理は削除（別途レッスン進捗APIで管理）
 
     // 学習時間を計算
     const learningDuration = endDateTime.getTime() - startDateTime.getTime();

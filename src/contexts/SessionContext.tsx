@@ -10,7 +10,6 @@ export interface SessionState {
   currentSession?: {
     id: string;
     startedAt: Date;
-    lessonId?: number;
   };
   timeElapsed: number; // milliseconds
   showStartModal: boolean;
@@ -19,11 +18,12 @@ export interface SessionState {
 }
 
 export interface SessionActions {
-  startSession: (lessonId?: number) => Promise<void>;
+  startSession: (startReport?: string) => Promise<void>;
   endSession: (endTime?: Date, progressReport?: string) => Promise<void>;
   checkSessionStatus: () => Promise<void>;
   dismissModal: (type: 'start' | 'end') => void;
   updateTimeElapsed: (elapsed: number) => void;
+  clearSession: () => void;
 }
 
 // アクション型定義
@@ -137,14 +137,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   };
 
   // セッション開始
-  const startSession = async (lessonId?: number): Promise<void> => {
+  const startSession = async (startReport?: string): Promise<void> => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
 
       const response = await fetch('/api/session/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lessonId }),
+        body: JSON.stringify({ startReport }),
       });
 
       if (!response.ok) {
@@ -155,7 +155,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const sessionData = {
         id: data.sessionId,
         startedAt: new Date(data.startedAt),
-        lessonId,
       };
 
       dispatch({ type: 'SET_CURRENT_SESSION', payload: sessionData });
@@ -216,7 +215,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         const sessionData = {
           id: data.currentSession.id,
           startedAt: new Date(data.currentSession.startedAt),
-          lessonId: data.currentSession.lessonId,
         };
 
         dispatch({ type: 'SET_CURRENT_SESSION', payload: sessionData });
@@ -260,6 +258,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // セッション情報をクリア（開発用）
+  const clearSession = (): void => {
+    dispatch({ type: 'RESET_SESSION' });
+    clearSessionFromStorage();
+    dispatch({ type: 'SET_STATUS', payload: 'NOT_STARTED' });
+  };
+
   // 初期化時にLocalStorageから復元とサーバー状態チェック
   useEffect(() => {
     loadSessionFromStorage();
@@ -273,6 +278,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     checkSessionStatus,
     dismissModal,
     updateTimeElapsed,
+    clearSession,
   };
 
   return (

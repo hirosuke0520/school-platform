@@ -10,8 +10,18 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = session.user.id;
+    
+    // ユーザーの存在確認
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    
+    if (!userExists) {
+      console.error("User not found in database:", userId);
+      return NextResponse.json({ error: "ユーザーが見つかりません" }, { status: 404 });
+    }
     const body = await request.json();
-    const { lessonId } = body;
+    const { startReport } = body;
 
     // 既存の進行中セッションがある場合は終了させる
     const existingSession = await prisma.learningSession.findFirst({
@@ -31,50 +41,18 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // レッスンIDが指定されている場合、存在確認
-    if (lessonId) {
-      const lesson = await prisma.lesson.findUnique({
-        where: { id: parseInt(lessonId) },
-      });
-
-      if (!lesson) {
-        return NextResponse.json(
-          { error: "指定されたレッスンが見つかりません" },
-          { status: 404 }
-        );
-      }
-    }
+    // レッスンIDの処理は削除
 
     // 新しい学習セッションを開始
     const newSession = await prisma.learningSession.create({
       data: {
         userId,
-        lessonId: lessonId ? parseInt(lessonId) : null,
         startedAt: new Date(),
+        progressReport: startReport || null,
       },
     });
 
-    // レッスンの進捗状態を「進行中」に更新（レッスンが指定されている場合）
-    if (lessonId) {
-      await prisma.userProgress.upsert({
-        where: {
-          userId_lessonId: {
-            userId,
-            lessonId: parseInt(lessonId),
-          },
-        },
-        update: {
-          status: "IN_PROGRESS",
-          startedAt: new Date(),
-        },
-        create: {
-          userId,
-          lessonId: parseInt(lessonId),
-          status: "IN_PROGRESS",
-          startedAt: new Date(),
-        },
-      });
-    }
+    // レッスン進捗の更新は削除（別途レッスン進捗APIで管理）
 
     return NextResponse.json({
       success: true,

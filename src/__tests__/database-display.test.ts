@@ -326,11 +326,10 @@ describe("データベース表示統合テスト", () => {
         },
       });
 
-      // 学習セッション作成
+      // 学習セッション作成（lessonIdは削除）
       const session1 = await prisma.learningSession.create({
         data: {
           userId: user.id,
-          lessonId: lesson2.id,
           startedAt: new Date(Date.now() - 180000),
           endedAt: new Date(Date.now() - 120000),
           progressReport: "1時間の学習を完了しました",
@@ -340,7 +339,6 @@ describe("データベース表示統合テスト", () => {
       const session2 = await prisma.learningSession.create({
         data: {
           userId: user.id,
-          lessonId: lesson3.id,
           startedAt: new Date(Date.now() - 120000),
           endedAt: new Date(),
           progressReport: "30分の短時間学習",
