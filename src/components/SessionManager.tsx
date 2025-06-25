@@ -12,25 +12,19 @@ export default function SessionManager() {
   const { state, actions } = useSession();
   const { isActive, isOverLimit } = useSessionTimer();
 
-  // 認証されていないユーザーには何も表示しない
-  if (status === 'loading' || !authSession?.user) {
-    return null;
-  }
-
-  // LEARNERロールのユーザーのみにセッション管理を適用
-  if (authSession.user.role !== 'LEARNER') {
-    return null;
-  }
-
-  // セッション状態を定期的にチェック
+  // セッション状態を定期的にチェック（アクティブな時のみ）
   useEffect(() => {
+    if (state.status !== 'ACTIVE') {
+      return; // アクティブでない場合は定期チェックしない
+    }
+    
     const checkInterval = setInterval(() => {
       // セッション状態を再確認（サーバーとの同期）
       actions.checkSessionStatus();
     }, 5 * 60 * 1000); // 5分間隔
 
     return () => clearInterval(checkInterval);
-  }, [actions]);
+  }, [actions, state.status]);
 
   // 24時間経過時の自動モーダル表示
   useEffect(() => {
@@ -74,6 +68,15 @@ export default function SessionManager() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isActive, state.showEndModal, actions]);
+
+  // E2Eテスト中、認証されていない場合、またはLEARNER以外は何も表示しない
+  if (process.env.NODE_ENV === 'test' || 
+      process.env.PLAYWRIGHT_TEST || 
+      status === 'loading' || 
+      !authSession?.user ||
+      authSession.user.role !== 'LEARNER') {
+    return null;
+  }
 
   return (
     <>

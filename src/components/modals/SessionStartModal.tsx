@@ -6,6 +6,7 @@ import { useSession } from '@/contexts/SessionContext';
 export default function SessionStartModal() {
   const { state, actions } = useSession();
   const [startReason, setStartReason] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 開始モーダルを表示する条件
@@ -18,7 +19,18 @@ export default function SessionStartModal() {
 
     setIsSubmitting(true);
     try {
-      await actions.startSession();
+      // 開始理由と終了予定時刻を含むレポートを作成
+      let fullReport = '';
+      if (startReason.trim()) {
+        fullReport += `学習目標: ${startReason.trim()}`;
+      }
+      if (endTime.trim()) {
+        if (fullReport) fullReport += '\n';
+        fullReport += `終了予定時刻: ${endTime}`;
+      }
+      
+      // startSessionにレポートを渡す
+      await actions.startSession(fullReport || undefined);
       // SessionContextが自動的にモーダルを閉じる
     } catch (error) {
       console.error('セッション開始エラー:', error);
@@ -29,7 +41,7 @@ export default function SessionStartModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm" style={{top: '64px'}}>
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6 relative">
         {/* 閉じるボタンなし（強制モーダル） */}
         
@@ -48,7 +60,7 @@ export default function SessionStartModal() {
         </div>
 
         {/* 開始理由入力（任意） */}
-        <div className="mb-6">
+        <div className="mb-4">
           <label htmlFor="startReason" className="block text-sm font-medium text-gray-700 mb-2">
             今日の学習目標（任意）
           </label>
@@ -63,6 +75,24 @@ export default function SessionStartModal() {
           />
           <div className="text-right text-xs text-gray-500 mt-1">
             {startReason.length}/200
+          </div>
+        </div>
+
+        {/* 終了予定時刻入力（任意） */}
+        <div className="mb-6">
+          <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-2">
+            終了予定時刻（任意）
+          </label>
+          <input
+            id="endTime"
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            disabled={isSubmitting}
+          />
+          <div className="text-xs text-gray-500 mt-1">
+            予定時刻を設定すると、時間管理がしやすくなります
           </div>
         </div>
 

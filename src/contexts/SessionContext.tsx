@@ -15,6 +15,7 @@ export interface SessionState {
   showStartModal: boolean;
   showEndModal: boolean;
   isLoading: boolean;
+  isInitialized: boolean;
 }
 
 export interface SessionActions {
@@ -35,6 +36,7 @@ type SessionAction =
   | { type: 'SHOW_START_MODAL'; payload: boolean }
   | { type: 'SHOW_END_MODAL'; payload: boolean }
   | { type: 'DISMISS_MODAL'; payload: 'start' | 'end' }
+  | { type: 'SET_INITIALIZED'; payload: boolean }
   | { type: 'RESET_SESSION' };
 
 // 初期状態
@@ -45,6 +47,7 @@ const initialState: SessionState = {
   showStartModal: false,
   showEndModal: false,
   isLoading: false,
+  isInitialized: false,
 };
 
 // リデューサー
@@ -75,10 +78,14 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
         return { ...state, showEndModal: false };
       }
       
+    case 'SET_INITIALIZED':
+      return { ...state, isInitialized: action.payload };
+      
     case 'RESET_SESSION':
       return {
         ...initialState,
         status: 'COMPLETED',
+        isInitialized: true,
       };
       
     default:
@@ -233,7 +240,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         saveSessionToStorage(sessionData);
       } else {
         dispatch({ type: 'SET_STATUS', payload: 'NOT_STARTED' });
-        dispatch({ type: 'SHOW_START_MODAL', payload: true });
+        dispatch({ type: 'SET_CURRENT_SESSION', payload: undefined });
+        // 定期チェックではモーダルを自動表示しない
       }
 
     } catch (error) {
@@ -267,10 +275,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   // 初期化時にLocalStorageから復元とサーバー状態チェック
   useEffect(() => {
-    loadSessionFromStorage();
-    checkSessionStatus();
+    const initializeSession = async () => {
+      loadSessionFromStorage();
+      await checkSessionStatus();
+      dispatch({ type: 'SET_INITIALIZED', payload: true });
+    };
+    
+    initializeSession();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 初期化完了後、セッションがない場合のみ開始モーダル表示
+  useEffect(() => {
+    if (state.isInitialized && state.status === 'NOT_STARTED' && !state.currentSession && !state.showStartModal) {
+      dispatch({ type: 'SHOW_START_MODAL', payload: true });
+    }
+  }, [state.isInitialized, state.status, state.currentSession, state.showStartModal]);
 
   const actions: SessionActions = {
     startSession,
