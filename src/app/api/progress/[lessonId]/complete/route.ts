@@ -67,35 +67,20 @@ export async function POST(
         },
       });
     } else {
-      // 新しい進捗を作成
+      // 新しい進捗を作成（開始時刻も設定）
       userProgress = await prisma.userProgress.create({
         data: {
           userId,
           lessonId,
           status: "COMPLETED",
+          startedAt: new Date(),
           completedAt: new Date(),
         },
       });
     }
 
-    // 学習セッションも終了させる（進行中のセッションがある場合）
-    const ongoingSession = await prisma.learningSession.findFirst({
-      where: {
-        userId,
-        lessonId,
-        endedAt: null,
-      },
-    });
-
-    if (ongoingSession) {
-      await prisma.learningSession.update({
-        where: { id: ongoingSession.id },
-        data: { 
-          endedAt: new Date(),
-          progressReport: progressReport,
-        },
-      });
-    }
+    // 学習セッション管理は別途実装（/api/session/endで管理）
+    // 進捗報告はprogressReportとして受け取るが、学習セッションとは別々に管理
 
     return NextResponse.json({
       success: true,

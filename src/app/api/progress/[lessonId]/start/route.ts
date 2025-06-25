@@ -29,25 +29,7 @@ export async function POST(
       return NextResponse.json({ error: "レッスンが見つかりません" }, { status: 404 });
     }
 
-    // 既存の進行中セッションを終了
-    await prisma.learningSession.updateMany({
-      where: {
-        userId,
-        endedAt: null,
-      },
-      data: {
-        endedAt: new Date(),
-      },
-    });
-
-    // 新しい学習セッションを開始
-    const learningSession = await prisma.learningSession.create({
-      data: {
-        userId,
-        lessonId,
-        startedAt: new Date(),
-      },
-    });
+    // 学習セッション管理は別途実装（/api/session/startで管理）
 
     // 進捗レコードの作成/更新
     const existingProgress = await prisma.userProgress.findUnique({
@@ -72,6 +54,7 @@ export async function POST(
         },
         data: {
           status: "IN_PROGRESS",
+          startedAt: new Date(),
         },
       });
     } else if (!existingProgress) {
@@ -81,6 +64,7 @@ export async function POST(
           userId,
           lessonId,
           status: "IN_PROGRESS",
+          startedAt: new Date(),
         },
       });
     } else {
@@ -89,9 +73,8 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      learningSession,
       userProgress,
-      message: "学習セッションを開始しました",
+      message: "レッスンを開始しました",
     });
 
   } catch (error) {
