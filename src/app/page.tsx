@@ -7,6 +7,12 @@ import LearnerErrorHandler from "@/components/LearnerErrorHandler";
 import PersonalProgressStats from "@/components/PersonalProgressStats";
 import RecentLearningActivity from "@/components/RecentLearningActivity";
 import RecommendedLessons from "@/components/RecommendedLessons";
+import { 
+  calculateCourseProgress, 
+  calculateOverallProgress, 
+  getCurrentLesson,
+  type CourseWithProgress 
+} from "@/lib/progress-utils";
 
 // アイコンマッピング
 const technologyIcons: Record<string, { icon: string; color: string }> = {
@@ -44,37 +50,9 @@ export default async function Dashboard() {
     },
   });
 
-  // ユーザーの学習統計を取得
-  const userProgress = await prisma.userProgress.findMany({
-    where: { userId },
-    include: {
-      lesson: {
-        include: {
-          chapter: {
-            include: {
-              course: true,
-            },
-          },
-        },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  // 最近の学習セッションを取得
+  // 最近の学習セッションを取得（レッスン情報なし）
   const recentSessions = await prisma.learningSession.findMany({
     where: { userId },
-    include: {
-      lesson: {
-        include: {
-          chapter: {
-            include: {
-              course: true,
-            },
-          },
-        },
-      },
-    },
     orderBy: { startedAt: 'desc' },
     take: 5,
   });
@@ -82,19 +60,10 @@ export default async function Dashboard() {
   // 基本コース一覧（進捗追跡用）
   const basicCourses = courses;
 
-  // 各コースの進捗状況を計算
+  // 各コースの進捗状況を計算（新しいロジック使用）
   const coursesWithProgressData = basicCourses.map((course) => {
-    const allLessons = course.chapters.flatMap(chapter => chapter.lessons);
-    const completedLessons = allLessons.filter(lesson => 
-      lesson.progress.some(p => p.status === 'COMPLETED')
-    );
-    const inProgressLessons = allLessons.filter(lesson => 
-      lesson.progress.some(p => p.status === 'IN_PROGRESS')
-    );
-    
-    const progressRate = allLessons.length > 0 
-      ? Math.round((completedLessons.length / allLessons.length) * 100) 
-      : 0;
+    const courseProgress = calculateCourseProgress(course as CourseWithProgress);
+    const currentLesson = getCurrentLesson(course as CourseWithProgress);
     
     // コースタイトルから技術を推測
     const title = course.title.toLowerCase();
@@ -114,21 +83,14 @@ export default async function Dashboard() {
       color: "bg-gray-500",
     };
 
-    // 現在のレッスンを特定
-    const currentLesson = allLessons.find(lesson => 
-      lesson.progress.some(p => p.status === 'IN_PROGRESS')
-    ) || allLessons.find(lesson => 
-      lesson.progress.length === 0
-    );
-
     return {
       ...course,
-      lessonCount: allLessons.length,
-      completedLessons: completedLessons.length,
-      inProgressLessons: inProgressLessons.length,
-      progressRate,
+      lessonCount: courseProgress.totalLessons,
+      completedLessons: courseProgress.completedLessons,
+      inProgressLessons: courseProgress.inProgressLessons,
+      progressRate: courseProgress.progressRate,
       currentLesson,
-      hasProgress: completedLessons.length > 0 || inProgressLessons.length > 0,
+      hasProgress: courseProgress.status !== 'NOT_STARTED',
       ...techData,
     };
   });
@@ -136,9 +98,10 @@ export default async function Dashboard() {
   // 進行中のコース（進捗があるコース）
   const activeCourses = coursesWithProgressData.filter(course => course.hasProgress);
 
-  // 学習統計を計算
-  const totalLessonsCompleted = userProgress.filter(p => p.status === 'COMPLETED').length;
-  const totalLessonsInProgress = userProgress.filter(p => p.status === 'IN_PROGRESS').length;
+  // 学習統計を計算（新しいロジック使用）
+  const overallProgress = calculateOverallProgress(basicCourses as CourseWithProgress[]);
+  const totalLessonsCompleted = overallProgress.completedLessons;
+  const totalLessonsInProgress = overallProgress.inProgressLessons;
   const totalLearningTime = recentSessions.reduce((total, session) => {
     if (session.endedAt) {
       return total + (new Date(session.endedAt).getTime() - new Date(session.startedAt).getTime());
