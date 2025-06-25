@@ -11,22 +11,11 @@ export async function GET() {
 
     const userId = session.user.id;
 
-    // 進行中の学習セッションを検索
+    // 進行中の学習セッションを検索（レッスン情報なし）
     const currentSession = await prisma.learningSession.findFirst({
       where: {
         userId,
         endedAt: null, // 終了していないセッション
-      },
-      include: {
-        lesson: {
-          include: {
-            chapter: {
-              include: {
-                course: true,
-              },
-            },
-          },
-        },
       },
       orderBy: {
         startedAt: 'desc',
@@ -47,9 +36,7 @@ export async function GET() {
         currentSession: {
           id: currentSession.id,
           startedAt: currentSession.startedAt,
-          lessonId: currentSession.lessonId,
           elapsed,
-          lesson: currentSession.lesson,
         },
       });
     }
