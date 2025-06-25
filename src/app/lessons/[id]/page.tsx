@@ -55,7 +55,6 @@ export default async function LessonDetail({ params }: { params: Promise<{ id: s
 
   // ユーザーの進捗情報を取得
   let userProgress = null;
-  let latestSession = null;
   
   if (session?.user) {
     userProgress = await prisma.userProgress.findUnique({
@@ -65,14 +64,6 @@ export default async function LessonDetail({ params }: { params: Promise<{ id: s
           lessonId: lessonId,
         },
       },
-    });
-
-    latestSession = await prisma.learningSession.findFirst({
-      where: {
-        userId: session.user.id,
-        lessonId: lessonId,
-      },
-      orderBy: { startedAt: 'desc' },
     });
   }
 
@@ -171,7 +162,7 @@ export default async function LessonDetail({ params }: { params: Promise<{ id: s
           <LessonCompletion
             lessonId={lessonId}
             isCompleted={userProgress?.status === 'COMPLETED'}
-            initialProgressReport={latestSession?.progressReport || ''}
+            initialProgressReport={''}
           />
         )}
 
