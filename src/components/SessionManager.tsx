@@ -88,13 +88,15 @@ export default function SessionManager() {
       
       {/* デバッグ情報（開発時のみ） */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white p-2 rounded text-xs z-40">
+        <div className="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white p-2 rounded text-xs z-40 max-w-xs">
           <div>Status: {state.status}</div>
-          <div>Session: {state.currentSession?.id || 'None'}</div>
+          <div>Session: {state.currentSession?.id?.slice(-8) || 'None'}</div>
           <div>Start Modal: {state.showStartModal ? 'Visible' : 'Hidden'}</div>
           <div>End Modal: {state.showEndModal ? 'Visible' : 'Hidden'}</div>
           <div>Active: {isActive ? 'Yes' : 'No'}</div>
           <div>Over Limit: {isOverLimit ? 'Yes' : 'No'}</div>
+          <div>Initialized: {state.isInitialized ? 'Yes' : 'No'}</div>
+          <div>Loading: {state.isLoading ? 'Yes' : 'No'}</div>
         </div>
       )}
     </>

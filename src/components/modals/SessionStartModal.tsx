@@ -43,7 +43,17 @@ export default function SessionStartModal() {
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm" style={{top: '64px'}}>
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6 relative">
-        {/* 閉じるボタンなし（強制モーダル） */}
+        {/* 後で開始するボタン */}
+        <button
+          onClick={() => actions.dismissModal('start')}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          disabled={isSubmitting}
+        >
+          <span className="sr-only">後で開始する</span>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         
         {/* アイコンとタイトル */}
         <div className="text-center mb-6">
@@ -129,6 +139,15 @@ export default function SessionStartModal() {
           ) : (
             '学習を開始する'
           )}
+        </button>
+
+        {/* 後で開始するボタン */}
+        <button
+          onClick={() => actions.dismissModal('start')}
+          disabled={isSubmitting}
+          className="w-full mt-3 py-2 px-4 text-gray-600 hover:text-gray-800 text-sm transition-colors"
+        >
+          後で開始する
         </button>
 
         {/* フッター情報 */}

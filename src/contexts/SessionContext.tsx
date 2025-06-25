@@ -16,6 +16,7 @@ export interface SessionState {
   showEndModal: boolean;
   isLoading: boolean;
   isInitialized: boolean;
+  modalDismissed: boolean; // ユーザーが意図的にモーダルを閉じた場合
 }
 
 export interface SessionActions {
@@ -37,6 +38,7 @@ type SessionAction =
   | { type: 'SHOW_END_MODAL'; payload: boolean }
   | { type: 'DISMISS_MODAL'; payload: 'start' | 'end' }
   | { type: 'SET_INITIALIZED'; payload: boolean }
+  | { type: 'SET_MODAL_DISMISSED'; payload: boolean }
   | { type: 'RESET_SESSION' };
 
 // 初期状態
@@ -48,6 +50,7 @@ const initialState: SessionState = {
   showEndModal: false,
   isLoading: false,
   isInitialized: false,
+  modalDismissed: false,
 };
 
 // リデューサー
@@ -73,13 +76,16 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
       
     case 'DISMISS_MODAL':
       if (action.payload === 'start') {
-        return { ...state, showStartModal: false };
+        return { ...state, showStartModal: false, modalDismissed: true };
       } else {
         return { ...state, showEndModal: false };
       }
       
     case 'SET_INITIALIZED':
       return { ...state, isInitialized: action.payload };
+      
+    case 'SET_MODAL_DISMISSED':
+      return { ...state, modalDismissed: action.payload };
       
     case 'RESET_SESSION':
       return {
@@ -155,10 +161,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        throw new Error('セッション開始に失敗しました');
+        const errorData = await response.json();
+        console.error('Session start API error:', response.status, errorData);
+        throw new Error(`セッション開始に失敗しました: ${errorData.error || response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('Session start API success:', data);
+      
       const sessionData = {
         id: data.sessionId,
         startedAt: new Date(data.startedAt),
@@ -167,8 +177,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'SET_CURRENT_SESSION', payload: sessionData });
       dispatch({ type: 'SET_STATUS', payload: 'ACTIVE' });
       dispatch({ type: 'SHOW_START_MODAL', payload: false });
+      dispatch({ type: 'SET_MODAL_DISMISSED', payload: false }); // セッション開始時はフラグをリセット
       
       saveSessionToStorage(sessionData);
+      console.log('Session state updated, modal should be hidden');
 
     } catch (error) {
       console.error('セッション開始エラー:', error);
@@ -285,12 +297,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 初期化完了後、セッションがない場合のみ開始モーダル表示
+  // 初期化完了後、セッションがない場合のみ開始モーダル表示（一度も閉じられていない場合のみ）
   useEffect(() => {
-    if (state.isInitialized && state.status === 'NOT_STARTED' && !state.currentSession && !state.showStartModal) {
+    if (state.isInitialized && 
+        state.status === 'NOT_STARTED' && 
+        !state.currentSession && 
+        !state.showStartModal && 
+        !state.modalDismissed) {
       dispatch({ type: 'SHOW_START_MODAL', payload: true });
     }
-  }, [state.isInitialized, state.status, state.currentSession, state.showStartModal]);
+  }, [state.isInitialized, state.status, state.currentSession, state.showStartModal, state.modalDismissed]);
 
   const actions: SessionActions = {
     startSession,
